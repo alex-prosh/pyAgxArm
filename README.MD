@@ -1,6 +1,6 @@
 # 机械臂驱动包使用说明
 
-[EN](README.MD)
+[EN](README(EN).MD)
 
 |![ubuntu18.04](https://img.shields.io/badge/Ubuntu-18.04-orange.svg)|![ubuntu20.04](https://img.shields.io/badge/Ubuntu-20.04-orange.svg)|![ubuntu22.04](https://img.shields.io/badge/Ubuntu-22.04-orange.svg)|
 |---|---|---|

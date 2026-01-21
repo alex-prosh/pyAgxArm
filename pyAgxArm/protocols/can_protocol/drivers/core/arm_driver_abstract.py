@@ -91,7 +91,7 @@ class ArmDriverAbstract(ArmDriverInterface):
 
     @overload
     def init_effector(
-        self, effector: str
+        self, effector: None
     ) -> None:
         """Initialize end-effector driver exactly once and return the driver instance.
 

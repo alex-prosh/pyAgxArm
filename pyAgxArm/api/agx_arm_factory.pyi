@@ -64,7 +64,7 @@ class AgxArmFactory:
 
     @classmethod
     @overload
-    def create_arm(cls, config: dict, **kwargs) -> None:
+    def create_arm(cls, config: None, **kwargs) -> None:
         """
         Create Arm Driver instance.
         """

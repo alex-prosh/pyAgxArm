@@ -224,8 +224,11 @@ class Driver:
         Message
         -------
         `width`: Current gripper width, unit: m
+
         `force`: Current gripper force, unit: N
+
         `status_code`: Status code
+        
         `set_zero`: Set zero
 
         Examples
@@ -276,15 +279,8 @@ class Driver:
         Returns
         -------
         bool
-            True if an ACK/response is received within `timeout` and the controller
-            reports success, False otherwise.
-
-            Notes
-            -----
-            This API relies on `0x476 resp_set_instruction`:
-            - byte0: instruction_index == 0x75
-            - byte1: is_set_zero_successfully == 1
-
+            True if the gripper is calibrated, False otherwise.
+        
         Examples
         --------
         >>> end_effector.disable_gripper()
@@ -345,10 +341,31 @@ class Driver:
         self, timeout: float = 1.0, min_interval: float = 1.0
     ) -> Optional[MessageAbstract[ArmMsgFeedbackGripperTeachingPendantParam]]:
         """
-        Query gripper teaching pendant parameters.
+        Get gripper teaching pendant parameters.
 
-        This uses the shared arm ParamEnquiry frame and waits for gripper-specific
-        feedback (0x47E) parsed by this end-effector parser.
+        Parameters
+        ----------
+        `timeout`: float, optional
+        - Timeout in seconds (see arm `Driver` docstring: Common conventions -> `timeout`).
+        - Default is 1.0.
+
+        `min_interval`: float, optional
+        - Minimum interval in seconds between two consecutive requests.
+        - Default is 1.0.
+
+        Returns
+        -------
+        MessageAbstract[ArmMsgFeedbackGripperTeachingPendantParam] | None
+            The gripper teaching pendant parameters. If the parameters are not
+            available, return None.
+
+        Message
+        -------
+        `teaching_range_per`: Teaching range per, range: [100, 200], unit: %
+
+        `max_range_config`: Maximum range config, value: 0.07, 0.1, unit: m
+
+        `teaching_friction`: Teaching friction, range: [1, 10]
 
         Examples
         --------
@@ -400,19 +417,37 @@ class Driver:
         """
         Set gripper teaching pendant parameters.
 
-        Notes
-        -----
-        True indicates the controller acknowledged the request. For semantics and
-        common conventions, see parent arm driver's `Driver` docstring.
+        Parameters
+        ----------
+        `teaching_range_per`: int, optional
+        - Teaching range per, range: [100, 200], unit: %. Default is 100.
+
+        `max_range_config`: float, optional
+        - Maximum range config, value: 0.07, 0.1, unit: m. Default is 0.0.
+
+        `teaching_friction`: int, optional
+        - Teaching friction, range: [1, 10]. Default is 1.
+
+        `timeout`: float, optional
+        - Timeout in seconds. Default is 1.0.
+
+        Returns
+        -------
+        bool
+            True if an ACK/response is received within `timeout`, False otherwise.
+
+            Notes
+            -----
+            See arm `Driver` docstring: Common conventions -> `set_*` return semantics.
 
         Examples
         --------
-        >>> ok = end_effector.set_gripper_teaching_pendant_param(
+        >>> success = end_effector.set_gripper_teaching_pendant_param(
         ...     teaching_range_per=100,
         ...     max_range_config=0.07,
         ...     teaching_friction=1,
         ... )
-        >>> if ok:
+        >>> if success:
         >>>     print("Gripper teaching pendant parameter set successfully")
         """
         self._ctx._validate_timeout(timeout)

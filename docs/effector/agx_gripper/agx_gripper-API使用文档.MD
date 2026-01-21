@@ -518,11 +518,11 @@ robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.EFFECTOR.AGX_GRIPPER)
 robot.connect()
 
-ok = end_effector.set_gripper_teaching_pendant_param(
+success = end_effector.set_gripper_teaching_pendant_param(
     teaching_range_per=100,
     max_range_config=0.07,
     teaching_friction=1,
 )
-if ok:
+if success:
     print("Gripper teaching pendant parameter set successfully")
 ```

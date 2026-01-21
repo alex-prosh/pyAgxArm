@@ -1685,11 +1685,11 @@ class Driver(ArmDriverAbstract):
 
         Examples
         --------
-        >>> robot.disable(1)  # call repeatedly until True if needed
-        >>> ok = robot.calibrate_joint(1)
-        >>> if ok:
+        >>> robot.disable(1)
+        >>> input("Please move the joint to the zero position...")
+        >>> if robot.calibrate_joint(1):
         >>>     robot.enable(1)
-        >>> # e.g. move home: robot.move_j([0.0] * 6)
+        >>>     robot.move_j([0.0] * 6)
         """
         # Input validation
         self._ctx._validate_timeout(timeout)

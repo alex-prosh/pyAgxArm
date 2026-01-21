@@ -29,25 +29,25 @@ print(end_effector.__doc__)
 
 # -------------------------- Move ----------------------------
 
-# robot.move_p([0.1, 0.0, 0.3, 0.0, 1.570796326794896619, 0.0])
+# robot.move_p([0.1, 0.0, 0.3, -1.4836869438278597, 0.0, -1.5707963267948966])
 # time.sleep(0.1)
 # while robot.get_arm_status().msg.motion_status != 0:
 #     time.sleep(0.1)
 
-# robot.move_l([0.2, 0.0, 0.3, 0.0, 1.570796326794896619, 0.0])
+# robot.move_l([0.2, 0.0, 0.3, -1.4836869438278597, 0.0, -1.5707963267948966])
 # time.sleep(0.1)
 # while robot.get_arm_status().msg.motion_status != 0:
 #     time.sleep(0.1)
 
-# start_pose = [0.2, 0.0, 0.3, 0.0, 1.570796326794896619, 0.0]
-# mid_pose = [0.2, 0.05, 0.35, 0.0, 1.570796326794896619, 0.0]
-# end_pose = [0.2, 0.0, 0.4, 0.0, 1.570796326794896619, 0.0]
+# start_pose = [0.2, 0.0, 0.3, -1.4836869438278597, 0.0, -1.5707963267948966]
+# mid_pose = [0.2, 0.05, 0.35, -1.4836869438278597, 0.0, -1.5707963267948966]
+# end_pose = [0.2, 0.0, 0.4, -1.4836869438278597, 0.0, -1.5707963267948966]
 # robot.move_c(start_pose, mid_pose, end_pose)
 # time.sleep(0.1)
 # while robot.get_arm_status().msg.motion_status != 0:
 #     time.sleep(0.1)
 
-# robot.move_j([0.0, 0.4, -0.4, 0, -0.4, 0])
+# robot.move_j([0.0, 0.4, -0.4, -0.4, 0, 0])
 # time.sleep(0.1)
 # while robot.get_arm_status().msg.motion_status != 0:
 #     time.sleep(0.1)
@@ -60,15 +60,15 @@ print(end_effector.__doc__)
 
 # --------------------------  MIT mode ------------------------
 
-# robot.move_js([0, 0.2, -0.2, 0, -0.2, 0])
+# robot.move_js([0, 0.2, -0.2, -0.2, 0, 0])
 # time.sleep(2)
 
 # robot.move_mit(1, 0.0)
 # robot.move_mit(2, 0.4)
 # robot.move_mit(3, -0.4)
-# robot.move_mit(4, 0.0)
-# robot.move_mit(5, -0.4)
-# robot.move_mit(6, 0.4)
+# robot.move_mit(4, -0.4)
+# robot.move_mit(5, 0.0)
+# robot.move_mit(6, 0.0)
 # time.sleep(2)
 
 

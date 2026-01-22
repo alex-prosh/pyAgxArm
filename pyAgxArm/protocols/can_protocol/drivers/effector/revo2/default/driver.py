@@ -19,7 +19,7 @@ from .....msgs.effector.revo2.default import (
 from .....msgs.core.msg_abstract import MessageAbstract
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Driver:
@@ -31,7 +31,11 @@ class Driver:
         self._config = config.copy()
         self._ctx = ctx
         self._parser = Parser(self._ctx.fps)
-        self._effector_ctx = EffectorDriverContext(config, self._ctx, self._parser)
+        self._effector_ctx = EffectorDriverContext(
+            config,
+            self._ctx,
+            self._parser,
+        )
 
     # -------------------------
     # Internal send helpers
@@ -42,16 +46,14 @@ class Driver:
             if data is not None:
                 self._ctx.get_comm().send(data)
         else:
-            raise TypeError(
-                "msg must be AttributeBase"
-            )
+            raise TypeError("msg must be AttributeBase")
 
     # -------------------------
     # Public APIs (gripper)
     # -------------------------
     def is_ok(self):
         return self._effector_ctx.is_ok()
-    
+
     def get_fps(self):
         return self._effector_ctx.get_fps()
 
@@ -179,7 +181,8 @@ class Driver:
             return fs
         return None
 
-    def get_finger_current(self) -> Optional[MessageAbstract[FeedbackFingerCurrent]]:
+    def get_finger_current(
+            self) -> Optional[MessageAbstract[FeedbackFingerCurrent]]:
         """
         Get the finger current.
 
@@ -225,7 +228,7 @@ class Driver:
         middle_finger: int = 0,
         ring_finger: int = 0,
         pinky_finger: int = 0,
-        ) -> None:
+    ) -> None:
         """
         Control the finger position.
 
@@ -266,7 +269,7 @@ class Driver:
         middle_finger: int = 0,
         ring_finger: int = 0,
         pinky_finger: int = 0,
-        ) -> None:
+    ) -> None:
         """
         Control the finger position.
 
@@ -307,7 +310,7 @@ class Driver:
         middle_finger: int = 0,
         ring_finger: int = 0,
         pinky_finger: int = 0,
-        ) -> None:
+    ) -> None:
         """
         Control the finger current.
 
@@ -349,7 +352,7 @@ class Driver:
         middle_finger: int = 0,
         ring_finger: int = 0,
         pinky_finger: int = 0,
-        ) -> None:
+    ) -> None:
         """
         Control the finger position or time.
 

@@ -25,7 +25,7 @@ class Driver(ArmDriverAbstract):
     Terminology
     -----------
     `flange`:
-    - The mounting face / connection interface on the arm's last link
+    - The mounting face / connection interface on the robotic arm's last link
       (mechanical tool interface).
 
     Common conventions
@@ -262,7 +262,7 @@ class Driver(ArmDriverAbstract):
         -------
         `ctrl_mode`: Control mode
 
-        `arm_status`: Robot arm status
+        `arm_status`: Robotic arm status
 
         `mode_feedback`: Mode feedback
 
@@ -287,7 +287,7 @@ class Driver(ArmDriverAbstract):
         - 7: Offline trajectory mode
         - 8: TCP control mode
 
-        `arm_status`: Robot arm status
+        `arm_status`: Robotic arm status
         - 0: Normal
         - 1: Emergency stop
         - 2: No solution
@@ -473,13 +473,17 @@ class Driver(ArmDriverAbstract):
         else:
             return None
 
-    def get_joint_enable_status(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]):
+    def get_joint_enable_status(
+        self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255]
+    ):
         """Get the enable status of the specified joint motor.
 
         Parameters
         ----------
-        `joint_index`: Literal[1, 2, 3, 4, 5, 6, 7]
+        `joint_index`: Literal[1, 2, 3, 4, 5, 6, 7, 255]
         - 1~7: get the enable status of the specified joint motor
+        - 255: get the enable status of all joint motors (True only if all
+          joints are enabled)
 
         Returns
         -------
@@ -494,6 +498,9 @@ class Driver(ArmDriverAbstract):
         >>> if enable_status:
         >>>     print("Joint 1 motor is enabled")
         """
+        if joint_index == 255:
+            return all(self.get_joints_enable_status_list())
+
         if joint_index not in self._JOINT_INDEX_LIST[:-1]:
             raise ValueError(
                 f"Joint index should be {self._JOINT_INDEX_LIST[:-1]}")
@@ -514,7 +521,8 @@ class Driver(ArmDriverAbstract):
         list[bool]
             Enable status of all joint motors.
         """
-        return [self.get_joint_enable_status(i) for i in self._JOINT_INDEX_LIST[:-1]]
+        return [self.get_joint_enable_status(i)
+                for i in self._JOINT_INDEX_LIST[:-1]]
 
     # -------------------------- Enable/Disable --------------------------
 
@@ -583,7 +591,8 @@ class Driver(ArmDriverAbstract):
         if joint_index == 255:
             # return self._all_joints_bool(lambda i: self.disable(i))
             send_disable_msg(self._JOINT_NUMS + 1)
-            return all(not self.get_joint_enable_status(i) for i in self._JOINT_INDEX_LIST[:-1])
+            return all(not self.get_joint_enable_status(i)
+                       for i in self._JOINT_INDEX_LIST[:-1])
         else:
             send_disable_msg(joint_index)
             return not self.get_joint_enable_status(joint_index=joint_index)
@@ -593,11 +602,11 @@ class Driver(ArmDriverAbstract):
     def reset(self):
         """Reset motion controller state.
 
-        This issues a motion control command to reset the arm's motion state.
+        This issues a motion control command to reset the robotic arm's motion state.
 
         Examples
         --------
-        Reset the arm:
+        Reset the robotic arm:
         >>> robot.reset()
         """
         msg = ArmMsgMotionCtrl(2)
@@ -672,7 +681,7 @@ class Driver(ArmDriverAbstract):
     # -------------------------- Move --------------------------
 
     def move_p(self, pose: List[float]):
-        """Move robot end-effector to specified pose in Cartesian space.
+        """Move the robotic arm flange to specified pose in Cartesian space.
 
         Parameters
         ----------
@@ -696,7 +705,7 @@ class Driver(ArmDriverAbstract):
         self.set_motion_mode('p')
 
     def move_j(self, joints: List[float]):
-        """Move robot joints to the specified target angles (joint space).
+        """Move the robotic arm joints to the specified target angles (joint space).
 
         Parameters
         ----------
@@ -746,7 +755,7 @@ class Driver(ArmDriverAbstract):
         self._send_msg(msg)
 
     def set_normal_mode(self):
-        """Set the arm to the normal controlled mode (single arm)."""
+        """Set the robotic arm to the normal controlled mode (single arm)."""
         self._set_master_slave_config(linkage_config=0x00)
         self._msg_mode.enable_can_push = 0x01
         self._set_mode()

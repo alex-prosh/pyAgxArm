@@ -15,7 +15,7 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory
 ```python
 create_agx_arm_config(
         robot:Literal["nero","piper","piper_h","piper_l","piper_x"],
-        comm:Literal["can"],
+        comm:Literal["can"] = "can",
         firmeware_version: str = "default",
         **kwargs) -> dict
 ```
@@ -25,7 +25,7 @@ create_agx_arm_config(
 |名称|类型|说明|
 |---|---|---|
 |robot|str|["nero","piper","piper_h","piper_l","piper_x"]参数可选，选择预期创建的机械臂实例|
-|comm|str|["can"]可选，默认为`"can0`"，选择连接机械臂的通讯方式|
+|comm|str|通讯类型，可选：`\"can\"`（默认：`\"can\"`）。注意：`comm` 不是 can 通道名；can 通道由下方 `channel` 指定|
 |firmeware_version|str|默认为"default"，选择机械臂当前底层对应的主控固件版本|
 |---可选参数---|||
 |joint_limit|dict|默认可以不输入，程序内自动根据机械臂赋值指定的关节限位，如果要指定，需要手动输入dict类型的关节限位，单位：弧度，示例下文可见，暂时不会对手动输入的关节限位生效到实际控制中|
@@ -76,6 +76,8 @@ create_agx_arm_config(
 - 使用示例:
 
 ```python
+from pyAgxArm import create_agx_arm_config
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 print(cfg)
 ```
@@ -107,8 +109,8 @@ create_arm(cls, config: dict, **kwargs) -> T
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 ```
@@ -134,14 +136,98 @@ connect(self, start_read_thread: bool = True) -> None
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 ```
 
+### 初始化末端执行器Driver实例 init_effector()
+
+- 功能说明:
+
+初始化末端执行器 Driver，并返回对应的执行器实例（例如夹爪/灵巧手等）。
+
+该接口为“一次性初始化”：同一个 `robot` 实例 **只能初始化一次** 执行器；如需切换到其它执行器类型，请创建新的机械臂实例。
+
+- 定义:
+
+```python
+init_effector(self, effector: str) -> EffectorDriver
+```
+
+- 参数说明:
+
+|名称|类型|说明|
+|---|---|---|
+|effector|str|执行器类型（建议使用 `robot.EFFECTOR.xxx` 常量）|
+
+- 使用示例:
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
+cfg = create_agx_arm_config(robot="nero", channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+# 初始化执行器（只能调用一次）
+end_effector = robot.init_effector(robot.EFFECTOR.REVO2)
+```
+
+### 获取关节数量 joint_nums
+
+- 功能说明:
+
+获取机械臂关节数量（例如 Nero 为 7）。
+
+- 定义:
+
+```python
+joint_nums: int
+```
+
+- 返回值:
+
+类型：`int`
+
+- 使用示例:
+
+```python
+import time
+from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
+cfg = create_agx_arm_config(robot="nero", channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+print("robotic arm joint_nums =", robot.joint_nums)
+
+# 示例：依次使能所有关节（不触发运动）
+for joint_index in range(1, robot.joint_nums + 1):
+    start_t = time.monotonic()
+    while True:
+        if robot.enable(joint_index):
+            print(f"enable joint {joint_index} success")
+            break
+        if time.monotonic() - start_t > 5.0:
+            print(f"enable joint {joint_index} timeout (5s)")
+            break
+        time.sleep(0.01)
+```
+
 ## 机械臂数据读取相关
+
+### MessageAbstract 返回值通用说明（重要）
+
+本 SDK 多数读取接口返回 `MessageAbstract[T] | None`。其中：
+
+|字段|类型|说明|
+|---|---|---|
+|`ret.msg`|`T`|消息数据本体（例如 `list[float]` 或某个反馈消息结构体）|
+|`ret.hz`|`float`|该消息类型的接收频率（由 SDK 统计），单位：Hz|
+|`ret.timestamp`|`float`|消息时间戳（由 SDK 记录），单位：s|
 
 ### 读取机械臂状态 get_arm_status()
 
@@ -159,7 +245,7 @@ get_arm_status(self) -> MessageAbstract[ArmMsgFeedbackStatus] | None
 
 类型：`MessageAbstract[ArmMsgFeedbackStatus] | None`
 
-- 消息字段说明（`arm_status.msg`）:
+- 消息字段说明（`MessageAbstract[ArmMsgFeedbackStatus].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -205,18 +291,18 @@ get_joint_states(self) -> MessageAbstract[list[float]] | None
 
 类型：`MessageAbstract[list[float]] | None`
 
-[j1, j2, j3, j4, j5, j6, j7]
-
-`js.msg` 为长度 7 的 `list[float]`，单位：rad，并带有 `hz/timestamp` 元数据。
+`MessageAbstract[list[float]].msg` 为长度 7 的 `list[float]`：`[j1, j2, j3, j4, j5, j6, j7]`，单位：rad。
 
 - 使用示例:
 
 ```python
 import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 while True:
     js = robot.get_joint_states()
     if js is not None:
@@ -245,23 +331,27 @@ get_flange_pose(self) -> MessageAbstract[list[float]] | None
 
 类型：`MessageAbstract[list[float]] | None`
 
-[x, y, z, rx, ry, rz]
+`MessageAbstract[list[float]].msg` 为长度 6 的 `list[float]`：`[x, y, z, roll, pitch, yaw]`。
 
-`flange.msg` 为长度 6 的 `list[float]`：`[x, y, z, roll, pitch, yaw]`，xyz 单位 m，姿态单位 rad，并带有 `hz/timestamp` 元数据。
+`x, y, z`: 位置坐标（单位：m）
+
+`roll, pitch, yaw`: 姿态欧拉角（单位：rad，分别对应绕 X/Y/Z 轴旋转）
 
 - 使用示例:
 
 ```python
 import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 while True:
-    flange = robot.get_flange_pose()
-    if flange is not None:
-        print(flange.msg) # list
-        print(flange.hz, flange.timestamp)
+    fp = robot.get_flange_pose()
+    if fp is not None:
+        print(fp.msg) # list
+        print(fp.hz, fp.timestamp)
     time.sleep(0.005)
 ```
 
@@ -287,7 +377,7 @@ get_motor_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbst
 
 类型：`MessageAbstract[ArmMsgFeedbackHighSpd] | None`
 
-- 消息字段说明（`ms.msg`）:
+- 消息字段说明（`MessageAbstract[ArmMsgFeedbackHighSpd].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -299,7 +389,6 @@ get_motor_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbst
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
 
 cfg = create_agx_arm_config(robot="nero", channel="can0")
@@ -334,7 +423,7 @@ get_driver_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbs
 
 类型：`MessageAbstract[ArmMsgFeedbackLowSpd] | None`
 
-- 消息字段说明（`ds.msg`）:
+- 消息字段说明（`MessageAbstract[ArmMsgFeedbackLowSpd].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -347,7 +436,6 @@ get_driver_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbs
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
 
 cfg = create_agx_arm_config(robot="nero", channel="can0")
@@ -370,14 +458,14 @@ if ds is not None:
 - 定义:
 
 ```python
-get_joint_enable_status(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> bool
+get_joint_enable_status(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255]) -> bool
 ```
 
 - 参数说明:
 
 |名称|类型|说明|
 |---|---|---|
-|joint_index|int|关节序号|
+|joint_index|int|关节序号：`1~7` 查询单关节；`255` 查询全部关节（内部使用 `all([...])` 汇总）|
 
 - 返回值:
 
@@ -386,11 +474,12 @@ get_joint_enable_status(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> bool
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 success = robot.get_joint_enable_status(1)
 if success:
     print("关节1电机已使能")
@@ -415,7 +504,6 @@ get_joints_enable_status_list(self) -> list[bool]
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
 
 cfg = create_agx_arm_config(robot="nero", channel="can0")
@@ -448,11 +536,12 @@ set_speed_percent(self, percent: int = 100) -> None
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 # 设定机械臂运行速度为百分之百
 robot.set_speed_percent(100)
 ```
@@ -473,7 +562,7 @@ set_motion_mode(self, motion_mode: Literal["p", "j"] = "p") -> None
 
 |名称|类型|说明|
 |---|---|---|
-|motion_mode|str|运动模式：`"p"` 末端模式；`"j"` 关节模式|
+|motion_mode|str|运动模式：`"p"` 末端模式；`"j"` 关节模式（建议使用 `robot.MOTION_MODE.xxx` 常量）|
 
 - 使用示例:
 
@@ -505,7 +594,7 @@ enable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 |名称|类型|说明|
 |---|---|---|
-|joint_index|int|数值为1～7时可以单独使能选中的关节，若为0xFF则为使能全部电机|
+|joint_index|int|关节序号：`1~7` 使能单关节；`255` 使能全部关节|
 
 - 返回值:
 
@@ -518,9 +607,11 @@ enable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 ```python
 import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 # 使能全部
 while not robot.enable():
     time.sleep(0.01)
@@ -542,7 +633,7 @@ disable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 |名称|类型|说明|
 |---|---|---|
-|joint_index|int|数值为1～7时可以单独使能选中的关节，若为0xFF则为失能全部电机|
+|joint_index|int|关节序号：`1~7` 失能单关节；`255` 失能全部关节|
 
 - 返回值:
 
@@ -555,9 +646,11 @@ disable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 ```python
 import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 # 失能全部
 while not robot.disable():
     time.sleep(0.01)
@@ -578,11 +671,12 @@ reset(self) -> None
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 robot.reset()
 ```
 
@@ -601,11 +695,12 @@ electronic_emergency_stop(self) -> None
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 robot.electronic_emergency_stop()
 ```
 
@@ -649,23 +744,36 @@ move_j(self, joints: list[float]) -> None
 
 |名称|类型|说明|
 |---|---|---|
-|joints|list[float]|各关节目标角度数组，单位：rad，数值精度：1.74532925199e-5|
+|joints|list[float]|长度 7 的各关节目标角度数组：`[j1, j2, j3, j4, j5, j6, j7]`（单位：rad，数值精度：1.74532925199e-5）|
 
 - 使用示例:
 
 ```python
 import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 while not robot.enable():
     time.sleep(0.01)
+
 robot.set_speed_percent(100)
 robot.move_j([0, 0.4, -0.4, 0, -0.4, 0, 0])
-while robot.get_arm_status().msg.motion_status != 0:
+
+# 等待运动结束（带 5s 超时，避免无限等待）
+time.sleep(0.1)
+start_t = time.monotonic()
+while True:
+    status = robot.get_arm_status()
+    if status is not None and status.msg.motion_status == 0:
+        print("已到达目标位置")
+        break
+    if time.monotonic() - start_t > 5.0:
+        print("等待运动结束超时（5s）")
+        break
     time.sleep(0.1)
-print("已到达目标位置")
 ```
 
 注意:
@@ -688,23 +796,36 @@ move_p(self, pose: list[float]) -> None
 
 |名称|类型|说明|
 |---|---|---|
-|pose|list[float]|目标位姿,位置单位：米，数值精度：1e-6；姿态单位：弧度，数值精度：1.74532925199e-5|
+|pose|list[float]|目标位姿 `[x, y, z, roll, pitch, yaw]`：`x, y, z` 为位置坐标（m，数值精度：1e-6）；`roll, pitch, yaw` 为姿态欧拉角（rad，分别绕 X/Y/Z 轴旋转，数值精度：1.74532925199e-5）|
 
 - 使用示例:
 
 ```python
 import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
+
 while not robot.enable():
     time.sleep(0.01)
+
 robot.set_speed_percent(100)
 robot.move_p([0.1, 0.0, 0.3, 0.0, 1.570796326794896619, 0.0])
-while robot.get_arm_status().msg.motion_status != 0:
+
+# 等待运动结束（带 5s 超时，避免无限等待）
+time.sleep(0.1)
+start_t = time.monotonic()
+while True:
+    status = robot.get_arm_status()
+    if status is not None and status.msg.motion_status == 0:
+        print("已到达目标位置")
+        break
+    if time.monotonic() - start_t > 5.0:
+        print("等待运动结束超时（5s）")
+        break
     time.sleep(0.1)
-print("已到达目标位置")
 ```
 
 注意:

@@ -3,10 +3,6 @@ from abc import ABC, abstractmethod
 class ArmDriverInterface(ABC):
 
     @abstractmethod
-    def get_instance(self):
-        ...
-
-    @abstractmethod
     def get_driver_version(self):
         ...
     

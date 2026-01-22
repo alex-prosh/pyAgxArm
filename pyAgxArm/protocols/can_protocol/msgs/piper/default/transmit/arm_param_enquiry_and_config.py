@@ -46,7 +46,7 @@ class ArmMsgParamEnquiryAndConfig(AttributeBase):
     '''
     transmit
     
-    Robot Arm Parameter Query and Setting Command
+    Robotic Arm Parameter Query and Setting Command
 
     CAN ID:
         0x477

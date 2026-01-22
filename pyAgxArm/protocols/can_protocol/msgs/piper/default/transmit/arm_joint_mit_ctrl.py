@@ -35,7 +35,7 @@ class ArmMsgJointMitCtrl(AttributeBase):
     '''
     transmit
     
-    Mechanical Arm Joint MIT Control
+    Robotic Arm Joint MIT Control
 
     CAN IDs:
         0x15A, 0x15B, 0x15C, 0x15D, 0x15E, 0x15F

@@ -1,5 +1,22 @@
-from pyAgxArm.api.agx_arm_factory import create_agx_arm_config, AgxArmFactory
 import time
+from pyAgxArm.api.agx_arm_factory import create_agx_arm_config, AgxArmFactory
+
+
+def wait_motion_done(robot, timeout: float = 5.0, poll_interval: float = 0.1) -> bool:
+    """Wait until `robot.get_arm_status().msg.motion_status == 0` or timeout."""
+    time.sleep(0.1)
+    start_t = time.monotonic()
+    while True:
+        status = robot.get_arm_status()
+        if status is not None and getattr(status.msg, "motion_status", None) == 0:
+            print("motion done")
+            return True
+        if time.monotonic() - start_t > timeout:
+            print(f"wait motion done timeout ({timeout:.1f}s)")
+            return False
+        time.sleep(poll_interval)
+
+
 robot_cfg = create_agx_arm_config(robot="piper_h", comm="can", channel="can0", interface="socketcan")
 print(robot_cfg)
 robot = AgxArmFactory.create_arm(robot_cfg)
@@ -31,31 +48,26 @@ print(end_effector.__doc__)
 
 # robot.move_p([0.1, 0.0, 0.3, 0.0, 1.570796326794896619, 0.0])
 # time.sleep(0.1)
-# while robot.get_arm_status().msg.motion_status != 0:
-#     time.sleep(0.1)
+# wait_motion_done(robot, timeout=5.0)
 
 # robot.move_l([0.2, 0.0, 0.3, 0.0, 1.570796326794896619, 0.0])
 # time.sleep(0.1)
-# while robot.get_arm_status().msg.motion_status != 0:
-#     time.sleep(0.1)
+# wait_motion_done(robot, timeout=5.0)
 
 # start_pose = [0.2, 0.0, 0.3, 0.0, 1.570796326794896619, 0.0]
 # mid_pose = [0.2, 0.05, 0.35, 0.0, 1.570796326794896619, 0.0]
 # end_pose = [0.2, 0.0, 0.4, 0.0, 1.570796326794896619, 0.0]
 # robot.move_c(start_pose, mid_pose, end_pose)
 # time.sleep(0.1)
-# while robot.get_arm_status().msg.motion_status != 0:
-#     time.sleep(0.1)
+# wait_motion_done(robot, timeout=5.0)
 
 # robot.move_j([0.0, 0.4, -0.4, 0, -0.4, 0])
 # time.sleep(0.1)
-# while robot.get_arm_status().msg.motion_status != 0:
-#     time.sleep(0.1)
+# wait_motion_done(robot, timeout=5.0)
 
 # robot.move_j([0] * 6)
 # time.sleep(0.1)
-# while robot.get_arm_status().msg.motion_status != 0:
-#     time.sleep(0.1)
+# wait_motion_done(robot, timeout=5.0)
 
 
 # --------------------------  MIT mode ------------------------
@@ -92,7 +104,7 @@ print(end_effector.__doc__)
 
 while True:
     break
-    
+
     # print(robot.get_fps())
     # print(robot.is_ok())
     # print(end_effector.get_fps())

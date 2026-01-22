@@ -150,7 +150,7 @@ class AgxArmFactory:
     @classmethod
     def create_arm(cls, config: dict, **kwargs) -> T:
         """
-        Create Arm Driver instance.
+        Create a robotic arm Driver instance.
         """
         arm_cls: Type[T] = cls.load_class(config)
         return arm_cls(config=config, **kwargs)

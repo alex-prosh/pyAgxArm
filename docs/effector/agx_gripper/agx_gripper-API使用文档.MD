@@ -6,11 +6,11 @@
 
 - 使用示例:
 
-robot 形参范围：["nero", "piper", "piper_h", "piper_l", "piper_x"]
+`robot` 形参范围（robotic arm 系列）：["nero", "piper", "piper_h", "piper_l", "piper_x"]
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="piper", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 ```
@@ -57,8 +57,8 @@ class EFFECTOR:
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="piper", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.EFFECTOR.AGX_GRIPPER)
@@ -91,8 +91,8 @@ connect(self, start_read_thread: bool = True) -> None
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="piper", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.EFFECTOR.AGX_GRIPPER)
@@ -170,6 +170,16 @@ print("effector fps =", end_effector.get_fps(), "Hz")
 
 ## 执行器读取数据相关
 
+### MessageAbstract 返回值通用说明（重要）
+
+本 SDK 多数读取接口返回 `MessageAbstract[T] | None`。其中：
+
+|字段|类型|说明|
+|---|---|---|
+|`ret.msg`|`T`|消息数据本体（例如夹爪状态结构体/参数结构体等）|
+|`ret.hz`|`float`|该消息类型的接收频率（由 SDK 统计），单位：Hz|
+|`ret.timestamp`|`float`|消息时间戳（由 SDK 记录），单位：s|
+
 ### 读取末端执行器状态 get_gripper_status()
 
 - 功能说明:
@@ -192,7 +202,7 @@ get_gripper_status(self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]
 2. 刚连接还没收到夹爪反馈帧（建议循环等待一小段时间）
 3. 当前 CAN 总线上没有该夹爪的反馈数据
 
-- 消息字段说明（`gs.msg`）:
+- 消息字段说明（`MessageAbstract[ArmMsgFeedbackGripper].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -212,13 +222,6 @@ get_gripper_status(self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]
 |driver_error_status|bool|驱动错误状态|
 |driver_enable_status|bool|驱动使能状态|
 |homing_status|bool|回零/零位状态|
-
-此外 `gs` 还带有一些通用元数据：
-
-|字段|类型|说明|
-|---|---|---|
-|hz|float|该消息类型的接收频率（由 SDK 统计）|
-|timestamp|float|消息时间戳（由 SDK 记录）|
 
 - 使用示例:
 
@@ -261,7 +264,7 @@ get_gripper_ctrl_states(self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]
 1. 未连接或未启动读线程
 2. 尚未收到夹爪控制反馈帧（建议循环等待）
 
-- 消息字段说明（`gcs.msg`）:
+- 消息字段说明（`MessageAbstract[ArmMsgGripperCtrl].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -270,12 +273,9 @@ get_gripper_ctrl_states(self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]
 |status_code|int|状态码（与控制指令相关）|
 |set_zero|int|回零/置零相关字段（与控制指令相关）|
 
-此外 `gcs` 同样包含通用元数据 `hz`、`timestamp`。
-
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
 
 cfg = create_agx_arm_config(robot="piper", channel="can0")
@@ -315,15 +315,13 @@ get_gripper_teaching_pendant_param(
 
 类型：`MessageAbstract[ArmMsgFeedbackGripperTeachingPendantParam] | None`
 
-- 消息字段说明（`param.msg`）:
+- 消息字段说明（`MessageAbstract[ArmMsgFeedbackGripperTeachingPendantParam].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
-|teaching_range_per|int|示教范围（百分比式值），常用范围：[100, 200]|
+|teaching_range_per|int|示教范围（百分比式值），范围：[100, 200]，仅适用于主从臂的**主臂**：用于放大主臂的控制行程并映射给从臂|
 |max_range_config|float|最大行程配置，单位：m，常见值：0 / 0.07 / 0.1|
-|teaching_friction|int|示教摩擦，常见范围：1..10|
-
-此外 `param` 同样包含通用元数据 `hz`、`timestamp`。
+|teaching_friction|int|示教摩擦，范围：1..10，**值越大越灵敏**：更容易张合夹爪，所需用力更小|
 
 - 使用示例:
 
@@ -492,9 +490,9 @@ set_gripper_teaching_pendant_param(
 
 |名称|类型|说明|
 |---|---|---|
-|teaching_range_per|int|示教范围（百分比式值），范围：[100, 200]|
+|teaching_range_per|int|示教范围（百分比式值），范围：[100, 200]，仅适用于主从臂的**主臂**：用于放大主臂的控制行程并映射给从臂|
 |max_range_config|float|最大行程配置（单位：m），仅支持：0（无效值） / 0.07 / 0.1|
-|teaching_friction|int|示教摩擦，范围：1..10|
+|teaching_friction|int|示教摩擦，范围：1..10，**值越大越灵敏**：更容易张合夹爪，所需用力更小|
 |timeout|float|等待 ACK/校验超时时间（秒），默认 1.0|
 
 - 返回值:

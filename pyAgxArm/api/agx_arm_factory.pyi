@@ -66,7 +66,7 @@ class AgxArmFactory:
     @overload
     def create_arm(cls, config: None, **kwargs) -> None:
         """
-        Create Arm Driver instance.
+        Create a robotic arm Driver instance.
         """
         ...
 
@@ -78,7 +78,7 @@ class AgxArmFactory:
         Terminology
         -----------
         `flange`:
-        - The mounting face / connection interface on the arm's last link
+        - The mounting face / connection interface on the robotic arm's last link
           (mechanical tool interface).
 
         Common conventions
@@ -109,7 +109,7 @@ class AgxArmFactory:
         Terminology
         -----------
         `flange`:
-        - The mounting face / connection interface on the arm's last link
+        - The mounting face / connection interface on the robotic arm's last link
           (mechanical tool interface).
 
         Common conventions
@@ -140,7 +140,7 @@ class AgxArmFactory:
         Terminology
         -----------
         `flange`:
-        - The mounting face / connection interface on the arm's last link
+        - The mounting face / connection interface on the robotic arm's last link
           (mechanical tool interface).
 
         Common conventions
@@ -171,7 +171,7 @@ class AgxArmFactory:
         Terminology
         -----------
         `flange`:
-        - The mounting face / connection interface on the arm's last link
+        - The mounting face / connection interface on the robotic arm's last link
           (mechanical tool interface).
 
         Common conventions
@@ -202,7 +202,7 @@ class AgxArmFactory:
         Terminology
         -----------
         `flange`:
-        - The mounting face / connection interface on the arm's last link
+        - The mounting face / connection interface on the robotic arm's last link
           (mechanical tool interface).
 
         Common conventions

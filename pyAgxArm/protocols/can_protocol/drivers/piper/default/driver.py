@@ -44,7 +44,7 @@ class Driver(ArmDriverAbstract):
     Terminology
     -----------
     `flange`:
-    - The mounting face / connection interface on the arm's last link
+    - The mounting face / connection interface on the robotic arm's last link
       (mechanical tool interface).
 
     Common conventions
@@ -78,7 +78,8 @@ class Driver(ArmDriverAbstract):
         LEFT: Final[Literal["left"]] = "left"
         RIGHT: Final[Literal["right"]] = "right"
 
-        # Keep as list for backward compatibility (callers may print or iterate).
+        # Keep as list for backward compatibility (callers may print or
+        # iterate).
         _VALUES: ClassVar[List[str]] = [HORIZONTAL, LEFT, RIGHT]
 
         # Internal mapping to protocol code.
@@ -454,7 +455,7 @@ class Driver(ArmDriverAbstract):
         -------
         `ctrl_mode`: Control mode
 
-        `arm_status`: Robot arm status
+        `arm_status`: Robotic arm status
 
         `mode_feedback`: Mode feedback
 
@@ -478,7 +479,7 @@ class Driver(ArmDriverAbstract):
         - 6: Linkage teaching input mode
         - 7: Offline trajectory mode
 
-        `arm_status`: Robot arm status
+        `arm_status`: Robotic arm status
         - 0: Normal
         - 1: Emergency stop
         - 2: No solution
@@ -664,13 +665,17 @@ class Driver(ArmDriverAbstract):
         else:
             return None
 
-    def get_joint_enable_status(self, joint_index: Literal[1, 2, 3, 4, 5, 6]):
+    def get_joint_enable_status(
+        self, joint_index: Literal[1, 2, 3, 4, 5, 6, 255]
+    ):
         """Get the enable status of the specified joint motor.
 
         Parameters
         ----------
-        `joint_index`: Literal[1, 2, 3, 4, 5, 6]
+        `joint_index`: Literal[1, 2, 3, 4, 5, 6, 255]
         - 1~6: get the enable status of the specified joint motor
+        - 255: get the enable status of all joint motors (True only if all
+          joints are enabled)
 
         Returns
         -------
@@ -685,6 +690,9 @@ class Driver(ArmDriverAbstract):
         >>> if enable_status:
         >>>     print("Joint 1 motor is enabled")
         """
+        if joint_index == 255:
+            return all(self.get_joints_enable_status_list())
+
         if joint_index not in self._JOINT_INDEX_LIST[:-1]:
             raise ValueError(
                 f"Joint index should be {self._JOINT_INDEX_LIST[:-1]}")
@@ -705,8 +713,9 @@ class Driver(ArmDriverAbstract):
         list[bool]
             Enable status of all joint motors.
         """
-        return [self.get_joint_enable_status(i) for i in self._JOINT_INDEX_LIST[:-1]]
-    
+        return [self.get_joint_enable_status(i)
+                for i in self._JOINT_INDEX_LIST[:-1]]
+
     def get_firmware(self, timeout: float = 1.0, min_interval: float = 1.0):
         """Get the firmware information of the arm.
 
@@ -851,7 +860,8 @@ class Driver(ArmDriverAbstract):
         if joint_index == 255:
             # return self._all_joints_bool(lambda i: self.disable(i))
             send_disable_msg(self._JOINT_NUMS + 1)
-            return all(not self.get_joint_enable_status(i) for i in self._JOINT_INDEX_LIST[:-1])
+            return all(not self.get_joint_enable_status(i)
+                       for i in self._JOINT_INDEX_LIST[:-1])
         else:
             send_disable_msg(joint_index)
             return not self.get_joint_enable_status(joint_index=joint_index)
@@ -975,7 +985,7 @@ class Driver(ArmDriverAbstract):
     # -------------------------- Move --------------------------
 
     def move_p(self, pose: List[float]):
-        """Move robot end-effector to specified pose in Cartesian space.
+        """Move the robotic arm flange to specified pose in Cartesian space.
 
         Parameters
         ----------
@@ -1005,7 +1015,7 @@ class Driver(ArmDriverAbstract):
         self._send_msgs(msgs)
 
     def move_j(self, joints: List[float]):
-        """Move robot joints to the specified target angles (joint space).
+        """Move the robotic arm joints to the specified target angles in joint space.
 
         Parameters
         ----------
@@ -1032,10 +1042,23 @@ class Driver(ArmDriverAbstract):
         self._send_msgs(msgs)
 
     def move_js(self, joints: List[float]):
-        """Move robot joints in joint space with "JS" mode enabled.
+        """Move the robotic arm joints to the specified target angles in joint
+        space with "JS" mode enabled.
 
         This is similar to `move_j`, but sets a specific `mit_mode`
         before sending the joint command messages.
+
+        WARNING
+        -------
+        This API is intended for "instantaneous" response:
+        - No smoothing.
+        - No trajectory planning.
+        - The controller/driver will try to respond as fast as possible
+          (not infinitely fast) to reach the target.
+
+        This may cause severe mechanical shock, oscillation, or instability.
+
+        Risk level: EXTREMELY HIGH.
 
         Parameters
         ----------
@@ -1062,7 +1085,8 @@ class Driver(ArmDriverAbstract):
         self._send_msgs(msgs)
 
     def move_l(self, pose: List[float]):
-        """Move end-effector to target pose with linear (Cartesian) motion.
+        """Move the robotic arm flange to target pose in Cartesian space with
+        linear motion.
 
         Parameters
         ----------
@@ -1095,7 +1119,7 @@ class Driver(ArmDriverAbstract):
         mid_pose: List[float],
         end_pose: List[float],
     ):
-        """Move robot end-effector to specified pose in Cartesian space with
+        """Move the robotic arm flange to specified pose in Cartesian space with
         circular motion.
 
         Parameters
@@ -1187,7 +1211,7 @@ class Driver(ArmDriverAbstract):
 
         Notes
         -----
-        - This uses MIT move mode (move_mode=4, mit_mode=0xAD).
+        - This uses MIT move mode.
         - Typical usage patterns:
           - Velocity control: set `kp = 0`, `kd != 0`, command `v_des`.
           - Torque control: set `kp = 0`, `kd = 0`, command `t_ff`.
@@ -1416,7 +1440,8 @@ class Driver(ArmDriverAbstract):
                 is not None
             )
 
-        def get_value() -> MessageAbstract[ArmMsgFeedbackCurrentMotorAngleLimitMaxSpd]:
+        def get_value(
+        ) -> MessageAbstract[ArmMsgFeedbackCurrentMotorAngleLimitMaxSpd]:
             self._parser.motor_angle_limit_max_spd.hz = self._ctx.fps.get_fps(
                 self._parser.motor_angle_limit_max_spd.msg_type
             )
@@ -1501,7 +1526,8 @@ class Driver(ArmDriverAbstract):
                 is not None
             )
 
-        def get_value() -> MessageAbstract[ArmMsgFeedbackCurrentMotorMaxAccLimit]:
+        def get_value(
+        ) -> MessageAbstract[ArmMsgFeedbackCurrentMotorMaxAccLimit]:
             self._parser.motor_max_acc_limit.hz = self._ctx.fps.get_fps(
                 self._parser.motor_max_acc_limit.msg_type
             )
@@ -1526,7 +1552,11 @@ class Driver(ArmDriverAbstract):
             stamp_attr=f"joint_acc:{joint_index}",
         )
 
-    def get_flange_vel_acc_limits(self, timeout: float = 1.0, min_interval: float = 1.0):
+    def get_flange_vel_acc_limits(
+        self,
+        timeout: float = 1.0,
+        min_interval: float = 1.0
+    ):
         """Get the flange velocity and acceleration limits.
 
         Parameters
@@ -1573,7 +1603,8 @@ class Driver(ArmDriverAbstract):
                 and self._parser.end_vel_acc_param.msg.end_max_linear_vel is not None
             )
 
-        def get_value() -> MessageAbstract[ArmMsgFeedbackCurrentEndVelAccParam]:
+        def get_value(
+        ) -> MessageAbstract[ArmMsgFeedbackCurrentEndVelAccParam]:
             self._parser.end_vel_acc_param.hz = self._ctx.fps.get_fps(
                 self._parser.end_vel_acc_param.msg_type
             )
@@ -1645,7 +1676,9 @@ class Driver(ArmDriverAbstract):
             temp: MessageAbstract[List[int]] = copy.deepcopy(
                 self._parser.crash_protection_rating)
             temp.msg = [
-                getattr(temp.msg, f"joint_{i}") for i in range(1, self._JOINT_NUMS + 1)
+                getattr(
+                    temp.msg,
+                    f"joint_{i}") for i in range(1, self._JOINT_NUMS + 1)
             ]
             return temp
 
@@ -1663,7 +1696,9 @@ class Driver(ArmDriverAbstract):
         )
 
     def calibrate_joint(
-        self, joint_index: Literal[1, 2, 3, 4, 5, 6, 255] = 255, timeout: float = 1.0
+        self,
+        joint_index: Literal[1, 2, 3, 4, 5, 6, 255] = 255,
+        timeout: float = 1.0
     ):
         """Calibrate the joint.
 
@@ -1711,7 +1746,10 @@ class Driver(ArmDriverAbstract):
                 )
 
             def get_value() -> bool:
-                return self._parser.resp_set_instruction.msg.is_set_zero_successfully == 1
+                return (
+                    self._parser.resp_set_instruction.msg.is_set_zero_successfully
+                    == 1
+                )
 
             res = self._resp_set_instruction_get(
                 request=request,
@@ -1878,7 +1916,9 @@ class Driver(ArmDriverAbstract):
         #     )
 
         if joint_index == 255:
-            return self._all_joints_bool(lambda i: self.set_joint_acc_limits(i, max_joint_acc))
+            return self._all_joints_bool(
+                lambda i: self.set_joint_acc_limits(
+                    i, max_joint_acc))
         else:
             # Clear previous response
             self._clear_resp_set_instruction()
@@ -1972,9 +2012,8 @@ class Driver(ArmDriverAbstract):
         def request() -> None:
             self._send_msg(
                 self._MSG_ParamEnquiryAndConfig(
-                    end_load_param_setting_effective=0xAE, set_end_load=load_code
-                )
-            )
+                    end_load_param_setting_effective=0xAE,
+                    set_end_load=load_code))
 
         return self._ack_only_set(
             request=request,

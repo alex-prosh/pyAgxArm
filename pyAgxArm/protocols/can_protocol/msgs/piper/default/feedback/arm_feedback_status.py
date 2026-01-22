@@ -150,14 +150,14 @@ class ArmMsgFeedbackStatus(AttributeBase):
     '''
     feedback
     
-    Robot Arm Status
+    Robotic Arm Status
 
     CAN ID: 
         0x2A1
 
     Arguments:
         ctrl_mode: Control mode
-        arm_status: Robot arm status
+        arm_status: Robotic arm status
         mode_feedback: Mode feedback
         teach_status: Teaching status
         motion_status: Motion status
@@ -175,7 +175,7 @@ class ArmMsgFeedbackStatus(AttributeBase):
             0x05: Remote control mode
             0x06: Linkage teaching input mode
             0x07: Offline trajectory mode
-        Byte 1: Robot arm status, uint8
+        Byte 1: Robotic arm status, uint8
             0x00: Normal
             0x01: Emergency stop
             0x02: No solution

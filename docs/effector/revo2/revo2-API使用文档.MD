@@ -9,8 +9,8 @@
 robot 形参范围：["nero", "piper", "piper_h", "piper_l", "piper_x"]
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero",channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 ```
@@ -57,8 +57,8 @@ class EFFECTOR:
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero",channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.EFFECTOR.REVO2)
@@ -90,8 +90,8 @@ connect(self, start_read_thread: bool = True) -> None
 - 使用示例:
 
 ```python
-import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
+
 cfg = create_agx_arm_config(robot="nero",channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.EFFECTOR.REVO2)
@@ -164,6 +164,16 @@ print("effector fps =", end_effector.get_fps(), "Hz")
 
 ## 执行器读取数据相关
 
+### MessageAbstract 返回值通用说明（重要）
+
+本 SDK 多数读取接口返回 `MessageAbstract[T] | None`。其中：
+
+|字段|类型|说明|
+|---|---|---|
+|`ret.msg`|`T`|消息数据本体（例如灵巧手状态/各指位置/速度等结构体）|
+|`ret.hz`|`float`|该消息类型的接收频率（由 SDK 统计），单位：Hz|
+|`ret.timestamp`|`float`|消息时间戳（由 SDK 记录），单位：s|
+
 ### 读取末端执行器状态 get_hand_status()
 
 - 功能说明:
@@ -180,7 +190,7 @@ get_hand_status(self) -> Optional[MessageAbstract[FeedbackHandStatus]]
 
 类型：`MessageAbstract[FeedbackHandStatus] | None`
 
-- 消息字段说明（`hs.msg`）:
+- 消息字段说明（`MessageAbstract[FeedbackHandStatus].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -191,8 +201,6 @@ get_hand_status(self) -> Optional[MessageAbstract[FeedbackHandStatus]]
 |middle_finger|int|中指电机状态：0 空闲；1 运行；2 堵转|
 |ring_finger|int|无名指电机状态：0 空闲；1 运行；2 堵转|
 |pinky_finger|int|小指电机状态：0 空闲；1 运行；2 堵转|
-
-此外 `hs` 同样包含通用元数据 `hz`、`timestamp`。
 
 - 使用示例:
 
@@ -228,7 +236,7 @@ get_finger_pos(self) -> Optional[MessageAbstract[FeedbackFingerPos]]
 
 类型：`MessageAbstract[FeedbackFingerPos] | None`
 
-- 消息字段说明（`fp.msg`）:
+- 消息字段说明（`MessageAbstract[FeedbackFingerPos].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -273,7 +281,7 @@ get_finger_spd(self) -> Optional[MessageAbstract[FeedbackFingerSpd]]
 
 类型：`MessageAbstract[FeedbackFingerSpd] | None`
 
-- 消息字段说明（`fs.msg`）:
+- 消息字段说明（`MessageAbstract[FeedbackFingerSpd].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -318,7 +326,7 @@ get_finger_current(self) -> Optional[MessageAbstract[FeedbackFingerCurrent]]
 
 类型：`MessageAbstract[FeedbackFingerCurrent] | None`
 
-- 消息字段说明（`fc.msg`）:
+- 消息字段说明（`MessageAbstract[FeedbackFingerCurrent].msg`）:
 
 |字段|类型|说明|
 |---|---|---|
@@ -498,7 +506,7 @@ position_time_ctrl(
 
 |名称|类型|说明|
 |---|---|---|
-|mode|str|控制模式：`pos` 位置（0 ~ 100）；`time` 时间（单位 10ms，范围 0~255）|
+|mode|str|控制模式：`pos` 位置（0~100）；`time` 时间（单位 10ms，范围 0~255）|
 |thumb_tip~pinky_finger|int|在 `pos` 模式下为目标位置；在 `time` 模式下为目标时间|
 
 - 使用示例:

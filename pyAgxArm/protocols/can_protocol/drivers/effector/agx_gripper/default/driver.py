@@ -18,7 +18,7 @@ from .....msgs.piper.default import (
 )
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Driver:
@@ -30,7 +30,11 @@ class Driver:
         self._config = config.copy()
         self._ctx = ctx
         self._parser = Parser(self._ctx.fps)
-        self._effector_ctx = EffectorDriverContext(config, self._ctx, self._parser)
+        self._effector_ctx = EffectorDriverContext(
+            config,
+            self._ctx,
+            self._parser,
+        )
 
     # -------------------------
     # Internal send helpers
@@ -41,9 +45,7 @@ class Driver:
             if data is not None:
                 self._ctx.get_comm().send(data)
         else:
-            raise TypeError(
-                "msg must be AttributeBase"
-            )
+            raise TypeError("msg must be AttributeBase")
 
     # -------------------------
     # Common "set_*" templates (ACK-only / ACK+verify)
@@ -167,11 +169,12 @@ class Driver:
     # -------------------------
     def is_ok(self):
         return self._effector_ctx.is_ok()
-    
+
     def get_fps(self):
         return self._effector_ctx.get_fps()
 
-    def get_gripper_status(self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]:
+    def get_gripper_status(
+            self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]:
         """
         Get the gripper status.
 
@@ -211,7 +214,8 @@ class Driver:
             return gs
         return None
 
-    def get_gripper_ctrl_states(self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]:
+    def get_gripper_ctrl_states(
+            self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]:
         """
         Get the gripper control states.
 
@@ -228,7 +232,7 @@ class Driver:
         `force`: Current gripper force, unit: N
 
         `status_code`: Status code
-        
+
         `set_zero`: Set zero
 
         Examples
@@ -280,7 +284,7 @@ class Driver:
         -------
         bool
             True if the gripper is calibrated, False otherwise.
-        
+
         Examples
         --------
         >>> end_effector.disable_gripper()
@@ -346,7 +350,8 @@ class Driver:
         Parameters
         ----------
         `timeout`: float, optional
-        - Timeout in seconds (see arm `Driver` docstring: Common conventions -> `timeout`).
+        - Timeout in seconds (see arm `Driver` docstring: Common conventions ->
+          `timeout`).
         - Default is 1.0.
 
         `min_interval`: float, optional
@@ -383,15 +388,16 @@ class Driver:
 
         def is_ready() -> bool:
             return (
-                getattr(self._parser, "gripper_teaching_pendant_param", None) is not None
+                getattr(self._parser, "gripper_teaching_pendant_param", None)
+                is not None
                 and self._parser.gripper_teaching_pendant_param.msg.teaching_range_per
                 is not None
             )
 
-        def get_value() -> MessageAbstract[ArmMsgFeedbackGripperTeachingPendantParam]:
+        def get_value(
+        ) -> MessageAbstract[ArmMsgFeedbackGripperTeachingPendantParam]:
             self._parser.gripper_teaching_pendant_param.hz = self._ctx.fps.get_fps(
-                self._parser.gripper_teaching_pendant_param.msg_type
-            )
+                self._parser.gripper_teaching_pendant_param.msg_type)
             return copy.deepcopy(self._parser.gripper_teaching_pendant_param)
 
         def clear() -> None:
@@ -454,7 +460,8 @@ class Driver:
         if not isinstance(teaching_range_per, int):
             raise TypeError("Teaching range per should be an integer")
         if teaching_range_per < 100 or teaching_range_per > 200:
-            raise ValueError("Teaching range per should be between 100 and 200")
+            raise ValueError(
+                "Teaching range per should be between 100 and 200")
         if max_range_config not in [0, 0.07, 0.1]:
             raise ValueError("Max range config should be 0, 0.07, 0.1")
         if teaching_friction not in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:

@@ -17,7 +17,7 @@ except ImportError:
     import msvcrt
 
 parser = argparse.ArgumentParser(description="Piper Terminal Table Monitor")
-parser.add_argument("--robot", type=str, default="piper", help="arm type")
+parser.add_argument("--robot", type=str, default="piper", help="robotic arm type")
 parser.add_argument("--can_port", type=str, default="can0", help="CAN port name")
 parser.add_argument("--hz", type=float, default=10, help="Refresh rate (Hz), range: 0.5 ~ 200")
 args = parser.parse_args()
@@ -447,7 +447,7 @@ def display_table(refresh_interval):
         # 单独打印 FPS 类
         print(f"+{'='*52}FPS{'='*52}+\n"
               f"{'All FPS':<15}: {round(robot.get_fps() + effector.get_fps())}\n"
-              f"{'Arm Status':<15}: {round(robot_status.hz):<5}  {'Flange Pose':<15}: {round(flange_pose.hz):<5}\n"
+              f"{'Robotic Arm Status':<18}: {round(robot_status.hz):<5}  {'Flange Pose':<15}: {round(flange_pose.hz):<5}\n"
               f"{'Joint Msg':<15}: {round(joint.hz):<5}  {'Gripper Msg':<15}: {round(gripper_status.hz):<5}\n"
               f"{'High Spd Info':<15}: {round(motor_states[0].hz):<5}  {'Low Spd Info':<15}: {round(driver_states[0].hz):<5}")
         print("=" * 109)

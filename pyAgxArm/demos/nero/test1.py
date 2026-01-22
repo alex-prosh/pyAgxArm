@@ -1,5 +1,22 @@
-from pyAgxArm.api.agx_arm_factory import create_agx_arm_config, AgxArmFactory
 import time
+from pyAgxArm.api.agx_arm_factory import create_agx_arm_config, AgxArmFactory
+
+
+def wait_motion_done(robot, timeout: float = 5.0, poll_interval: float = 0.1) -> bool:
+    """Wait until `robot.get_arm_status().msg.motion_status == 0` or timeout."""
+    time.sleep(0.1)
+    start_t = time.monotonic()
+    while True:
+        status = robot.get_arm_status()
+        if status is not None and getattr(status.msg, "motion_status", None) == 0:
+            print("motion done")
+            return True
+        if time.monotonic() - start_t > timeout:
+            print(f"wait motion done timeout ({timeout:.1f}s)")
+            return False
+        time.sleep(poll_interval)
+
+
 robot_cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0", interface="socketcan")
 print(robot_cfg)
 robot = AgxArmFactory.create_arm(robot_cfg)
@@ -28,15 +45,12 @@ print(end_effector.__doc__)
 
 # The following poses are for Piper and need to be replaced with Nero poses to run successfully on Nero.
 
-# robot.move_p([0.3, 0.0, 0.45, 0.0, 1.570796326794896619, 0.0])
-# time.sleep(0.1)
-# while robot.get_arm_status().msg.motion_status != 0:
-#     time.sleep(0.1)
+# robot.move_p([-0.160251, -0.043348, 0.6907249999999999, 1.117935745779928, 0.9272061651219876, 0.14817845349431857])
+# wait_motion_done(robot, timeout=5.0)
 
-# robot.move_j([0] * 7)
+# robot.move_j([0.0] * 7)
 # time.sleep(0.1)
-# while robot.get_arm_status().msg.motion_status != 0:
-#     time.sleep(0.1)
+# wait_motion_done(robot, timeout=5.0)
 
 
 # -------------------------- reset ----------------------------

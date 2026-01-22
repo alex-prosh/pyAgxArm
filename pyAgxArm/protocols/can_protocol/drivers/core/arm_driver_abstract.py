@@ -125,7 +125,7 @@ class ArmDriverAbstract(ArmDriverInterface):
         if self._effector_kind is not None:
             raise RuntimeError(
                 f"effector already initialized: {self._effector_kind}. "
-                "Create a new arm instance if you need a different effector."
+                "Create a new robotic arm instance if you need a different effector."
             )
 
         effector_kind = str(effector).strip().lower()
@@ -144,9 +144,6 @@ class ArmDriverAbstract(ArmDriverInterface):
             return self._effector
 
         raise ValueError(f"Unsupported effector kind: {effector}")
-
-    def get_instance(self):
-        raise NotImplementedError
 
     def get_driver_version(self):
         raise NotImplementedError

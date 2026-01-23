@@ -2,7 +2,7 @@ import copy
 import inspect
 from typing import Type, Dict, TypeVar
 from typing_extensions import Literal
-from .constants import ROBOT_OPTION_FIELDS, ROBOT_JOINT_LIMIT_PRESET
+from .constants import ROBOT_OPTION_FIELDS, ROBOT_JOINT_LIMIT_PRESET, ROBOT_JOINT_NAME
 from ..protocols.can_protocol.comms import *
 from ..protocols.can_protocol.drivers.piper import PiperDriverDefault
 from ..protocols.can_protocol.drivers.nero import NeroDriverDefault
@@ -40,6 +40,8 @@ def create_agx_arm_config(
     for field in allowed_fields:
         if field in kwargs:
             config[field] = kwargs[field]
+    # ---------- joint name ----------
+    config["joint_name"] = ROBOT_JOINT_NAME.get(robot)
     # ---------- joint limit ----------
     preset_joint_limit = ROBOT_JOINT_LIMIT_PRESET.get(robot)
     if preset_joint_limit is None:

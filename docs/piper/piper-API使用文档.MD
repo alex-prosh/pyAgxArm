@@ -25,7 +25,7 @@ create_agx_arm_config(
 |名称|类型|说明|
 |---|---|---|
 |robot|str|["nero","piper","piper_h","piper_l","piper_x"]参数可选，选择预期创建的机械臂实例|
-|comm|str|通讯类型，可选：`\"can\"`（默认：`\"can\"`）。注意：`comm` 不是 can 通道名；can 通道由下方 `channel` 指定|
+|comm|str|通讯类型，可选：`"can"`（默认：`"can"`）。注意：`comm` 不是 can 通道名；can 通道由下方 `channel` 指定|
 |firmeware_version|str|默认为"default"，选择机械臂当前底层对应的主控固件版本|
 |---可选参数---|||
 |joint_limit|dict|默认可以不输入，程序内自动根据机械臂赋值指定的关节限位，如果要指定，需要手动输入dict类型的关节限位，单位：弧度，示例下文可见，暂时不会对手动输入的关节限位生效到实际控制中|
@@ -45,7 +45,7 @@ create_agx_arm_config(
 
 ```json
 {
-    "robot": "nero",
+    "robot": "piper",
     "comm":{
         "type":"can",
         "can":{
@@ -57,13 +57,14 @@ create_agx_arm_config(
             "timeout": 1.0
         }
     },
+    "joint_name": ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], 
     "joint_limit":{
-        "j1":[-2.617994, 2.617994],
-        "j2":[0.0, 3.141593],
-        "j3":[-2.967060, 0.0],
-        "j4":[-1.745330, 1.745330],
-        "j5":[-1.221730, 1.221730],
-        "j6":[-2.094396, 2.094396]
+        "joint1":[-2.617994, 2.617994],
+        "joint2":[0.0, 3.141593],
+        "joint3":[-2.967060, 0.0],
+        "joint4":[-1.745330, 1.745330],
+        "joint5":[-1.221730, 1.221730],
+        "joint6":[-2.094396, 2.094396]
     },
 }
 ```

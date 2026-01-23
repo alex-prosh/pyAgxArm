@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*-coding:utf8-*-
 from enum import unique
-from ....core import EnumBase
+from ....core import IntEnumBase
 from ....core import AttributeBase
 
 class ArmMsgFeedbackStatusEnum:
     @unique
-    class CtrlMode(EnumBase):
+    class CtrlMode(IntEnumBase):
         STANDBY = 0x00
         CAN_CTRL = 0x01
         TEACHING_MODE = 0x02
@@ -17,7 +17,7 @@ class ArmMsgFeedbackStatusEnum:
         OFFLINE_TRAJECTORY_MODE = 0x07
         UNKNOWN = 0xFF
     @unique
-    class ArmStatus(EnumBase):
+    class ArmStatus(IntEnumBase):
         NORMAL = 0x00
         EMERGENCY_STOP = 0x01
         NO_SOLUTION = 0x02
@@ -36,7 +36,7 @@ class ArmMsgFeedbackStatusEnum:
         RELEASE_RESISTOR_NTC_OVER_TEMPERATURE = 0x0F
         UNKNOWN = 0xFF
     @unique
-    class ModeFeedback(EnumBase):
+    class ModeFeedback(IntEnumBase):
         MOVE_P = 0x00
         MOVE_J = 0x01
         MOVE_L = 0x02
@@ -45,7 +45,7 @@ class ArmMsgFeedbackStatusEnum:
         MOVE_CPV = 0x05
         UNKNOWN = 0xFF
     @unique
-    class TeachingState(EnumBase):
+    class TeachingState(IntEnumBase):
         DISABLED = 0x00               # 关闭
         START_RECORDING = 0x01        # 开始示教记录（进入拖动示教模式）
         STOP_RECORDING = 0x02         # 结束示教记录（退出拖动示教模式）
@@ -56,7 +56,7 @@ class ArmMsgFeedbackStatusEnum:
         MOVE_TO_START = 0x07          # 运动到轨迹起点
         UNKNOWN = 0xFF
     @unique
-    class MotionStatus(EnumBase):
+    class MotionStatus(IntEnumBase):
         REACH_TARGET_POS_SUCCESSFULLY = 0x00
         REACH_TARGET_POS_FAILED = 0x01
         UNKNOWN = 0xFF
@@ -150,14 +150,14 @@ class ArmMsgFeedbackStatus(AttributeBase):
     '''
     feedback
     
-    Robotic Arm Status
+    Robot Arm Status
 
     CAN ID: 
         0x2A1
 
     Arguments:
         ctrl_mode: Control mode
-        arm_status: Robotic arm status
+        arm_status: Robot arm status
         mode_feedback: Mode feedback
         teach_status: Teaching status
         motion_status: Motion status
@@ -175,7 +175,7 @@ class ArmMsgFeedbackStatus(AttributeBase):
             0x05: Remote control mode
             0x06: Linkage teaching input mode
             0x07: Offline trajectory mode
-        Byte 1: Robotic arm status, uint8
+        Byte 1: Robot arm status, uint8
             0x00: Normal
             0x01: Emergency stop
             0x02: No solution

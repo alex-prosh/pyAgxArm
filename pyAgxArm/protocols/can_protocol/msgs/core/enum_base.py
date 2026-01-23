@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-class EnumBase(IntEnum):
+class IntEnumBase(IntEnum):
     def __str__(self):
         # return f"{self.__class__.__name__}.{self.name}(0x{self.value:X})"
         return f"{self.name}(0x{self.value:X})"

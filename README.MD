@@ -98,7 +98,7 @@ robot.connect()
 while True:
     js = robot.get_joint_states()
     # 如果反馈数值不为None，因为刚运行程序时没有接收到数据，反馈值为None
-    if js:
+    if js is not None:
         print(js.msg) # list
         print(js.hz, js.timestamp)
     time.sleep(0.005)# 200hz

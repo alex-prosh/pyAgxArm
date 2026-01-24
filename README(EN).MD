@@ -101,7 +101,7 @@ robot.connect()
 while True:
     js = robot.get_joint_states()
     # If the feedback value is not None — note that the feedback value will be None initially when the program starts, as no data has been received yet.
-    if js:
+    if js is not None:
         print(js.msg) # list
         print(js.hz, js.timestamp)
     time.sleep(0.005)# 200hz

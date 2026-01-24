@@ -691,7 +691,7 @@ print("tcp_pose =", tcp_pose)
 
 # 示例二：从当前位姿获取法兰位姿，与 `get_tcp_pose()` 得到的pose相同
 flange_pose = robot.get_flange_pose()
-if flange_pose:
+if flange_pose is not None:
     tcp_pose = robot.get_flange2tcp_pose(flange_pose)
     print("tcp_pose =", tcp_pose)
 ```
@@ -944,11 +944,11 @@ while True:
 
 如果连续该指令会覆盖上一次的目标值
 
-### 末端控制 move_p()
+### 点到点运动 move_p()
 
 - 功能说明:
 
-该指令为发送一个末端点位，机械臂会根据当前点位和目标点位进行关节角度解算
+该指令为发送一个目标法兰位姿，机械臂会根据当前关节位置和目标位姿进行关节角度解算
 
 - 定义:
 

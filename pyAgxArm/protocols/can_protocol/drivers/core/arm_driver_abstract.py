@@ -286,7 +286,7 @@ class ArmDriverAbstract(ArmDriverInterface):
         --------
         >>> robot.set_tcp_offset([0, 0, 0.1, 0, 0, 0])
         >>> flange_pose = robot.get_flange_pose()
-        >>> if flange_pose:
+        >>> if flange_pose is not None:
         >>>     print(robot.get_flange2tcp_pose(flange_pose.msg))
         """
         flange_pose = validate_pose6(

@@ -870,7 +870,7 @@ print("tcp_pose =", tcp_pose)
 
 # 示例二：从当前位姿获取法兰位姿，与 `get_tcp_pose()` 得到的pose相同
 flange_pose = robot.get_flange_pose()
-if flange_pose:
+if flange_pose is not None:
     tcp_pose = robot.get_flange2tcp_pose(flange_pose)
     print("tcp_pose =", tcp_pose)
 ```
@@ -1234,7 +1234,7 @@ start_t = time.monotonic()
 while True:
     status = robot.get_arm_status()
     if status is not None and status.msg.motion_status == 0:
-print("已到达目标位置")
+        print("已到达目标位置")
         break
     if time.monotonic() - start_t > 5.0:
         print("等待运动结束超时（5s）")
@@ -1295,11 +1295,11 @@ robot.move_js([0, 0.4, -0.4, 0, -0.4, 0])
 
 5. 在旧版本机械臂固件下（低于 `S-V1.8-5`），如果机械臂当前模式为从臂模式，如果想要切换到位置速度控制模式，需要先执行 `robot.reset()`，机械臂此时会重置掉电，然后再执行 `move_j` 才能正常控制
 
-### 末端控制 move_p()
+### 点到点运动 move_p()
 
 - 功能说明:
 
-该指令为发送一个末端点位，机械臂会根据当前点位和目标点位进行关节角度解算
+该指令为发送一个目标法兰位姿，机械臂会根据当前关节位置和目标位姿进行关节角度解算
 
 - 定义:
 
@@ -1335,7 +1335,7 @@ start_t = time.monotonic()
 while True:
     status = robot.get_arm_status()
     if status is not None and status.msg.motion_status == 0:
-print("已到达目标位置")
+        print("已到达目标位置")
         break
     if time.monotonic() - start_t > 5.0:
         print("等待运动结束超时（5s）")
@@ -1347,11 +1347,11 @@ print("已到达目标位置")
 
 如果连续执行该指令会覆盖上一次的目标值
 
-### 末端直线运动 move_l()
+### 直线运动 move_l()
 
 - 功能说明:
 
-该指令为发送一个末端点位，机械臂会根据当前点位和目标点位进行直线规划
+该指令为发送一个目标法兰位姿，机械臂会根据当前位姿和目标位姿进行直线规划
 
 - 定义:
 
@@ -1399,11 +1399,11 @@ while True:
 
 连续执行该指令虽然可以覆盖上一次的目标，但是由于底层每接收到新的点位，都需要重新进行直线规划，因此不能够使用该指令连续发目标点
 
-### 末端圆弧运动 move_c()
+### 圆弧运动 move_c()
 
 - 功能说明:
 
-末端圆弧运动控制：通过“起点/中间点/终点”三个末端位姿进行圆弧轨迹规划并执行。
+圆弧运动控制：通过“起点/中间点/终点”三个目标法兰位姿进行圆弧轨迹规划并执行。
 
 - 定义:
 

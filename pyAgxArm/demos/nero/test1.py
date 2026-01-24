@@ -102,7 +102,7 @@ while True:
 # print(robot.get_tcp_pose())
 
 # flange_pose = robot.get_flange_pose()
-# if flange_pose:
+# if flange_pose is not None:
 #     tcp_pose = robot.get_flange2tcp_pose(flange_pose.msg)
 #     print(tcp_pose)
 

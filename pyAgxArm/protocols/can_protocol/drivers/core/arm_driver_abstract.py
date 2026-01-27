@@ -193,7 +193,7 @@ class ArmDriverAbstract(ArmDriverInterface):
     def get_channel(self):
         return self._ctx.get_comm().get_channel()
 
-    def get_joint_states(self):
+    def get_joint_angles(self):
         raise NotImplementedError
 
     def get_flange_pose(self):

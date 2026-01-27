@@ -111,7 +111,7 @@ while True:
     # print(end_effector.get_gripper_status())
 
     # print(robot.get_firmware())
-    # print(robot.get_joint_states())
+    # print(robot.get_joint_angles())
     # print(robot.get_flange_pose())
 
     # print(robot.get_joint_ctrl_states())

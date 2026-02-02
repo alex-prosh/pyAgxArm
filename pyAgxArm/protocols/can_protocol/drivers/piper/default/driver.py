@@ -1216,7 +1216,7 @@ class Driver(ArmDriverAbstract):
             (Numerical precision: 2.442002442002442e-3)
 
         `t_ff`: float, optional
-        - Feed-forward torque reference (unit: N·m). Range: [-18.0, 18.0].
+        - Feed-forward torque reference (unit: N·m). Range: [-8.0, 8.0].
           Default is
             0.0. (Numerical precision: 6.274509803921569e-2 N·m)
 
@@ -1266,9 +1266,9 @@ class Driver(ArmDriverAbstract):
                 "Proportional gain should be between 0.0 and 500.0")
         if kd < -5.0 or kd > 5.0:
             raise ValueError("Derivative gain should be between -5.0 and 5.0")
-        if t_ff < -18.0 or t_ff > 18.0:
+        if t_ff < -8.0 or t_ff > 8.0:
             raise ValueError(
-                "Torque reference should be between -18.0 and 18.0")
+                "Torque reference should be between -8.0 and 8.0")
 
         limits = self._config.get(
             "joint_limits", {}

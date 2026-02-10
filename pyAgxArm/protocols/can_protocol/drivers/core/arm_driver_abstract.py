@@ -6,6 +6,7 @@ from .arm_driver_interface import ArmDriverInterface
 from .driver_context import DriverContext
 from ...msgs.core import AttributeBase, MessageAbstract
 from .protocol_parser_interface import ProtocolParserInterface
+from .protocol_parser_abstract import DriverAPIOptions, DriverAPIProtoAdapter
 from ..core.arm_driver_context import ArmDriverContext
 from .....utiles.vaildator import Validator
 from .....utiles.tf import (
@@ -29,16 +30,9 @@ class ArmDriverAbstract(ArmDriverInterface):
 
     _Parser = ProtocolParserInterface
 
-    class EFFECTOR:
-        """
-        End-effector kind constants.
-
-        Use:
-            robot.init_effector(robot.EFFECTOR.AGX_GRIPPER)
-        """
-
-        AGX_GRIPPER: Final[Literal["agx_gripper"]] = "agx_gripper"
-        REVO2: Final[Literal["revo2"]] = "revo2"
+    @property
+    def OPTIONS(self):
+        return DriverAPIOptions
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -143,13 +137,13 @@ class ArmDriverAbstract(ArmDriverInterface):
         effector_kind = str(effector).strip().lower()
         self._effector_kind = effector_kind
 
-        if effector_kind == self.EFFECTOR.AGX_GRIPPER:
+        if effector_kind == self.OPTIONS.EFFECTOR.AGX_GRIPPER:
             from ..effector.agx_gripper import AgxGripperDriverDefault
 
             self._effector = AgxGripperDriverDefault(self._config, self.get_context())
             return self._effector
 
-        if effector_kind == self.EFFECTOR.REVO2:
+        if effector_kind == self.OPTIONS.EFFECTOR.REVO2:
             from ..effector.revo2 import Revo2DriverDefault
 
             self._effector = Revo2DriverDefault(self._config, self.get_context())

@@ -673,7 +673,7 @@ set_installation_pos(self, pos: Literal["horizontal", "left", "right"] = "horizo
 
 |名称|类型|说明|
 |---|---|---|
-|pos|str|`["horizontal", "left", "right"]`（建议使用 `robot.INSTALLATION_POS.xxx` 常量）|
+|pos|str|`["horizontal", "left", "right"]`（建议使用 `robot.OPTIONS.INSTALLATION_POS.xxx` 常量）|
 
 - 使用示例:
 
@@ -685,7 +685,7 @@ robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
 # 设定水平安装
-robot.set_installation_pos(robot.INSTALLATION_POS.HORIZONTAL)
+robot.set_installation_pos(robot.OPTIONS.INSTALLATION_POS.HORIZONTAL)
 ```
 
 ### 设定运动模式 set_motion_mode()
@@ -708,7 +708,7 @@ set_motion_mode(self, motion_mode: Literal["p", "j", "l", "c", "mit", "js"] = "p
 
 |名称|类型|说明|
 |---|---|---|
-|motion_mode|str|运动模式：`p/j/l/c/mit/js`（建议使用 `robot.MOTION_MODE.xxx` 常量）|
+|motion_mode|str|运动模式：`p/j/l/c/mit/js`（建议使用 `robot.OPTIONS.MOTION_MODE.xxx` 常量）|
 
 - 使用示例:
 
@@ -719,7 +719,7 @@ cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
-robot.set_motion_mode(robot.MOTION_MODE.J)
+robot.set_motion_mode(robot.OPTIONS.MOTION_MODE.J)
 ```
 
 ### 设定机械臂负载 set_payload()
@@ -738,7 +738,7 @@ set_payload(self, load: Literal['empty', 'half', 'full'] = 'empty', timeout: flo
 
 |名称|类型|说明|
 |---|---|---|
-|load|str|范围为 `['empty', 'half', 'full']`；`'empty'` 为空载，`'half'` 为半载，`'full'` 为满载（建议使用 `robot.PAYLOAD.xxx` 常量）|
+|load|str|范围为 `['empty', 'half', 'full']`；`'empty'` 为空载，`'half'` 为半载，`'full'` 为满载（建议使用 `robot.OPTIONS.PAYLOAD.xxx` 常量）|
 |timeout|float|设定指令发送后，等待反馈的循环时间|
 
 - 返回值:
@@ -757,7 +757,7 @@ robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
 # 设定满载
-robot.set_payload(robot.PAYLOAD.FULL)
+robot.set_payload(robot.OPTIONS.PAYLOAD.FULL)
 ```
 
 ## TCP相关

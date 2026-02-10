@@ -2,7 +2,7 @@ import copy
 from typing import Optional, Callable, TypeVar, ClassVar, List, Dict
 from typing_extensions import Literal, Final
 
-from .parser import Parser, DriverAPIOptions, DriverAPIProtoAdapter
+from .parser import Parser, PiperDefaultDriverAPIOptions, PiperDefaultDriverAPIProtoAdapter
 from ...core.arm_driver_abstract import ArmDriverAbstract
 from ....msgs.core import MessageAbstract
 from ......utiles.numeric_codec import (
@@ -68,7 +68,7 @@ class Driver(ArmDriverAbstract):
     """
     @property
     def OPTIONS(self):
-        return DriverAPIOptions
+        return PiperDefaultDriverAPIOptions
 
     ARM_STATUS = ArmMsgFeedbackStatusEnum
 
@@ -852,9 +852,9 @@ class Driver(ArmDriverAbstract):
         Parameters
         ----------
         `pos`: Literal['horizontal', 'left', 'right']
-        - `INSTALLATION_POS.HORIZONTAL`: horizontal installation (default)
-        - `INSTALLATION_POS.LEFT`: left-side installation
-        - `INSTALLATION_POS.RIGHT`: right-side installation
+        - `OPTIONS.INSTALLATION_POS.HORIZONTAL`: horizontal installation (default)
+        - `OPTIONS.INSTALLATION_POS.LEFT`: left-side installation
+        - `OPTIONS.INSTALLATION_POS.RIGHT`: right-side installation
 
         Raises
         ------
@@ -863,16 +863,16 @@ class Driver(ArmDriverAbstract):
 
         Examples
         --------
-        >>> robot.set_installation_pos(robot.INSTALLATION_POS.HORIZONTAL)
-        >>> robot.set_installation_pos(robot.INSTALLATION_POS.LEFT)
-        >>> robot.set_installation_pos(robot.INSTALLATION_POS.RIGHT)
+        >>> robot.set_installation_pos(robot.OPTIONS.INSTALLATION_POS.HORIZONTAL)
+        >>> robot.set_installation_pos(robot.OPTIONS.INSTALLATION_POS.LEFT)
+        >>> robot.set_installation_pos(robot.OPTIONS.INSTALLATION_POS.RIGHT)
         """
-        if pos not in self.INSTALLATION_POS._VALUES:
+        if pos not in self.OPTIONS.INSTALLATION_POS.value_list():
             raise ValueError(
-                "Installation position should be in INSTALLATION_POS: "
-                f"{self.INSTALLATION_POS._VALUES}"
+                "Installation position should be in OPTIONS.INSTALLATION_POS: "
+                f"{self.OPTIONS.INSTALLATION_POS.value_list()}"
             )
-        installation_pos = self.INSTALLATION_POS._POS_CODE[pos]
+        installation_pos = PiperDefaultDriverAPIProtoAdapter.installation_pos(pos)
         self._msg_mode.installation_pos = installation_pos
         self._set_mode()
         self._msg_mode.installation_pos = 0
@@ -886,12 +886,12 @@ class Driver(ArmDriverAbstract):
         Parameters
         ----------
         `motion_mode`: Literal['p', 'j', 'l', 'c', 'mit', 'js']
-        - `MOTION_MODE.P`: move p
-        - `MOTION_MODE.J`: move j
-        - `MOTION_MODE.L`: move l
-        - `MOTION_MODE.C`: move c
-        - `MOTION_MODE.MIT`: move mit (MIT)
-        - `MOTION_MODE.JS`: move js (MIT)
+        - `OPTIONS.MOTION_MODE.P`: move p
+        - `OPTIONS.MOTION_MODE.J`: move j
+        - `OPTIONS.MOTION_MODE.L`: move l
+        - `OPTIONS.MOTION_MODE.C`: move c
+        - `OPTIONS.MOTION_MODE.MIT`: move mit (MIT)
+        - `OPTIONS.MOTION_MODE.JS`: move js (MIT)
 
         Raises
         ------
@@ -901,15 +901,15 @@ class Driver(ArmDriverAbstract):
 
         Examples
         --------
-        >>> robot.set_motion_mode(robot.MOTION_MODE.P)
+        >>> robot.set_motion_mode(robot.OPTIONS.MOTION_MODE.P)
         """
-        if motion_mode not in self.MOTION_MODE._VALUES:
+        if motion_mode not in self.OPTIONS.MOTION_MODE.value_list():
             raise ValueError(
-                "Invalid motion mode, should be in MOTION_MODE: "
-                f"{self.MOTION_MODE._VALUES}"
+                "Invalid motion mode, should be in OPTIONS.MOTION_MODE: "
+                f"{self.OPTIONS.MOTION_MODE.value_list()}"
             )
-        self._msg_mode.move_mode = self.MOTION_MODE._MOVE_CODE[motion_mode]
-        self._msg_mode.mit_mode = self.MOTION_MODE._MIT_CODE[motion_mode]
+        self._msg_mode.move_mode = PiperDefaultDriverAPIProtoAdapter.motion_mode(motion_mode)
+        self._msg_mode.mit_mode = PiperDefaultDriverAPIProtoAdapter.mit_mode(motion_mode)
         self._set_mode()
 
     # -------------------------- Move --------------------------
@@ -1921,7 +1921,7 @@ class Driver(ArmDriverAbstract):
 
     def set_payload(
         self,
-        load: Literal['empty', 'half', 'full'] = 'empty',
+        payload: Literal['empty', 'half', 'full'] = 'empty',
         timeout: float = 1.0
     ):
         """Set the arm payload.
@@ -1964,11 +1964,11 @@ class Driver(ArmDriverAbstract):
         """
         # Input validation
         self._ctx._validate_timeout(timeout)
-        if load not in self.PAYLOAD._VALUES:
+        if payload not in self.OPTIONS.PAYLOAD.value_list():
             raise ValueError(
-                f"Load should be in PAYLOAD: {self.PAYLOAD._VALUES}")
+                f"Load should be in PAYLOAD: {self.OPTIONS.PAYLOAD.value_list()}")
 
-        load_code = self.PAYLOAD._LOAD_CODE[load]
+        payload_code = PiperDefaultDriverAPIProtoAdapter.payload(payload)
 
         # Clear previous response
         self._clear_resp_set_instruction()
@@ -1977,7 +1977,7 @@ class Driver(ArmDriverAbstract):
             self._send_msg(
                 self._MSG_ParamEnquiryAndConfig(
                     end_load_param_setting_effective=0xAE,
-                    set_end_load=load_code))
+                    set_end_load=payload_code))
 
         return self._ack_only_set(
             request=request,

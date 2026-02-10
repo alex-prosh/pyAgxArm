@@ -11,10 +11,11 @@ from ....msgs.core.attritube_base import AttributeBase
 from ....msgs.core.msg_abstract import MessageAbstract
 from ....msgs.piper.default import *
 from ...core.protocol_parser_interface import ProtocolParserInterface
+from ...core.protocol_parser_abstract import DriverAPIOptions, DriverAPIProtoAdapter
 from ...core.table_driven import TableDriven
 from ....msgs.core import EnumBase, IntEnumBase
 
-class DriverAPIOptions:
+class PiperDefaultDriverAPIOptions(DriverAPIOptions):
     class INSTALLATION_POS(EnumBase):
         HORIZONTAL: Final = "horizontal"
         LEFT: Final = "left"
@@ -33,31 +34,31 @@ class DriverAPIOptions:
         MIT: Final = "mit"
         JS: Final = "js"
 
-class DriverAPIProtoAdapter:
+class PiperDefaultDriverAPIProtoAdapter(DriverAPIProtoAdapter):
     _INSTALL_POS_CODE = {
-        DriverAPIOptions.INSTALLATION_POS.HORIZONTAL: ArmMsgModeCtrl.Enums.InstallationPos.HORIZONTAL,
-        DriverAPIOptions.INSTALLATION_POS.LEFT: ArmMsgModeCtrl.Enums.InstallationPos.LEFT,
-        DriverAPIOptions.INSTALLATION_POS.RIGHT: ArmMsgModeCtrl.Enums.InstallationPos.RIGHT,
+        PiperDefaultDriverAPIOptions.INSTALLATION_POS.HORIZONTAL: ArmMsgModeCtrl.Enums.InstallationPos.HORIZONTAL,
+        PiperDefaultDriverAPIOptions.INSTALLATION_POS.LEFT: ArmMsgModeCtrl.Enums.InstallationPos.LEFT,
+        PiperDefaultDriverAPIOptions.INSTALLATION_POS.RIGHT: ArmMsgModeCtrl.Enums.InstallationPos.RIGHT,
     }
 
     _MOVE_CODE = {
-        DriverAPIOptions.MOTION_MODE.P: ArmMsgModeCtrl.Enums.MotionMode.P,
-        DriverAPIOptions.MOTION_MODE.J: ArmMsgModeCtrl.Enums.MotionMode.J,
-        DriverAPIOptions.MOTION_MODE.L: ArmMsgModeCtrl.Enums.MotionMode.L,
-        DriverAPIOptions.MOTION_MODE.C: ArmMsgModeCtrl.Enums.MotionMode.C,
-        DriverAPIOptions.MOTION_MODE.MIT: ArmMsgModeCtrl.Enums.MotionMode.MIT,
-        DriverAPIOptions.MOTION_MODE.JS: ArmMsgModeCtrl.Enums.MotionMode.J,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.P: ArmMsgModeCtrl.Enums.MotionMode.P,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.J: ArmMsgModeCtrl.Enums.MotionMode.J,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.L: ArmMsgModeCtrl.Enums.MotionMode.L,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.C: ArmMsgModeCtrl.Enums.MotionMode.C,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.MIT: ArmMsgModeCtrl.Enums.MotionMode.MIT,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.JS: ArmMsgModeCtrl.Enums.MotionMode.J,
     }
 
     _MIT_CODE = {
-        DriverAPIOptions.MOTION_MODE.MIT: ArmMsgModeCtrl.Enums.MitMode.MIT,
-        DriverAPIOptions.MOTION_MODE.JS: ArmMsgModeCtrl.Enums.MitMode.MIT,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.MIT: ArmMsgModeCtrl.Enums.MitMode.MIT,
+        PiperDefaultDriverAPIOptions.MOTION_MODE.JS: ArmMsgModeCtrl.Enums.MitMode.MIT,
     }
 
     _PAYLOAD_CODE = {
-        DriverAPIOptions.PAYLOAD.EMPTY: ArmMsgParamEnquiryAndConfig.Enums.SetPayLoadLevel.EMPTY,
-        DriverAPIOptions.PAYLOAD.HALF: ArmMsgParamEnquiryAndConfig.Enums.SetPayLoadLevel.HALF,
-        DriverAPIOptions.PAYLOAD.FULL: ArmMsgParamEnquiryAndConfig.Enums.SetPayLoadLevel.FULL,
+        PiperDefaultDriverAPIOptions.PAYLOAD.EMPTY: ArmMsgParamEnquiryAndConfig.Enums.SetPayLoadLevel.EMPTY,
+        PiperDefaultDriverAPIOptions.PAYLOAD.HALF: ArmMsgParamEnquiryAndConfig.Enums.SetPayLoadLevel.HALF,
+        PiperDefaultDriverAPIOptions.PAYLOAD.FULL: ArmMsgParamEnquiryAndConfig.Enums.SetPayLoadLevel.FULL,
     }
 
     @classmethod

@@ -4,6 +4,7 @@
 
 ## Table of Contents
 
+- [Switch to 中文](#pyagxarm-使用说明)
 - [Introduction](#pyagxarm-user-guide)
 - [Environment](#environment)
 - [Documentation](#documentation)
@@ -12,13 +13,12 @@
 - [Quick Start](#quick-start)
 - [Notes](#notes)
 - [Contact](#contact)
-- [Switch to 中文](#pyagxarm-使用说明)
 
 
 ### Environment
 
 - Ubuntu: `18.04 / 20.04 / 22.04 / 24.04`
-- Python: `3.6` and above (tested up to `3.14`)
+- Python: `3.6` and above (compatible up to `3.14`)
 
 ### Documentation
 
@@ -94,6 +94,7 @@ while True:
 
 ## 目录
 
+- [切换到 English](#pyagxarm-user-guide)
 - [简介](#pyagxarm-使用说明)
 - [环境支持](#环境支持)
 - [文档入口](#文档入口)
@@ -102,12 +103,11 @@ while True:
 - [快速开始](#快速开始)
 - [注意事项](#注意事项)
 - [联系我们](#联系我们)
-- [切换到 English](#pyagxarm-user-guide)
 
 ## 环境支持
 
 - Ubuntu：`18.04 / 20.04 / 22.04 / 24.04`
-- Python：`3.6` 及以上（目前测试至 `3.14`）
+- Python：`3.6` 及以上（目前适配至 `3.14`）
 
 ## 文档入口
 

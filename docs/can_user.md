@@ -6,11 +6,11 @@
 
 ## Table of Contents
 
+- [Switch to 中文](#can-模块使用手册)
 - [Prerequisites](#prerequisites)
 - [1. Find CAN Modules](#1-find-can-modules)
 - [2. Activate a Single CAN Module](#2-activate-a-single-can-module)
 - [3. Activate Multiple CAN Modules Simultaneously](#3-activate-multiple-can-modules-simultaneously)
-- [Switch to 中文](#can-模块使用手册)
 
 ---
 
@@ -181,11 +181,11 @@ Run `ifconfig` and check if both `can_left` and `can_right` appear.
 
 ## 目录
 
+- [切换到 English](#can-module-manual)
 - [前置准备](#前置准备)
 - [1. 寻找 CAN 模块](#1-寻找-can-模块)
 - [2. 激活单个 CAN 模块](#2-激活单个-can-模块)
 - [3. 同时激活多个 CAN 模块](#3-同时激活多个-can-模块)
-- [切换到 English](#can-module-manual)
 
 ---
 

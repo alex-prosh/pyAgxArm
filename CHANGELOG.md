@@ -4,8 +4,8 @@
 
 ## Table of Contents
 
-- [Version 1.0.0](#version-100)
 - [Switch to 中文](#更新日志)
+- [Version 1.0.0](#version-100)
 
 ## Version 1.0.0
 
@@ -29,8 +29,8 @@ None
 
 ## 目录
 
-- [版本 1.0.0](#版本-100)
 - [切换到 English](#changelog)
+- [版本 1.0.0](#版本-100)
 
 ## 版本 1.0.0
 

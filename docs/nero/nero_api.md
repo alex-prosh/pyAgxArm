@@ -4,6 +4,7 @@
 
 ## Table of Contents
 
+- [Switch to 中文](#nero-机械臂-api-使用文档)
 - [Import Module](#import-module)
 - [Create Instance and Connect](#create-instance-and-connect)
   - [Create Configuration — create_agx_arm_config()](#create-configuration--create_agx_arm_config)
@@ -29,23 +30,22 @@
   - [Get TCP Pose — get_tcp_pose()](#get-tcp-pose--get_tcp_pose)
   - [Flange Pose to TCP Pose — get_flange2tcp_pose()](#flange-pose-to-tcp-pose--get_flange2tcp_pose)
   - [TCP Pose to Flange Pose — get_tcp2flange_pose()](#tcp-pose-to-flange-pose--get_tcp2flange_pose)
-- [Master-Slave Arm](#master-slave-arm)
+- [Leader-Follower Arm](#leader-follower-arm)
   - [Set Normal Mode — set_normal_mode()](#set-normal-mode--set_normal_mode)
-  - [Set Master Mode — set_master_mode()](#set-master-mode--set_master_mode)
-  - [Set Slave Mode — set_slave_mode()](#set-slave-mode--set_slave_mode)
-  - [Get Master Joint Angles — get_master_joint_angles()](#get-master-joint-angles--get_master_joint_angles)
+  - [Set Leader Mode — set_leader_mode()](#set-leader-mode--set_leader_mode)
+  - [Set Follower Mode — set_follower_mode()](#set-follower-mode--set_follower_mode)
+  - [Get Leader Joint Angles — get_leader_joint_angles()](#get-leader-joint-angles--get_leader_joint_angles)
 - [Motion Control](#motion-control)
   - [Enable — enable()](#enable--enable)
   - [Disable — disable()](#disable--disable)
   - [Reset — reset()](#reset--reset)
   - [Electronic Emergency Stop — electronic_emergency_stop()](#electronic-emergency-stop--electronic_emergency_stop)
   - [Joint Motion — move_j()](#joint-motion--move_j)
-  - [Joint Motion (Slave Mode) — move_js()](#joint-motion-slave-mode--move_js)
+  - [Joint Motion (Follower Mode) — move_js()](#joint-motion-follower-mode--move_js)
   - [Point-to-Point Motion — move_p()](#point-to-point-motion--move_p)
   - [Linear Motion — move_l()](#linear-motion--move_l)
   - [Arc Motion — move_c()](#arc-motion--move_c)
   - [Single Joint MIT Control — move_mit()](#single-joint-mit-control--move_mit)
-- [Switch to 中文](#nero-机械臂-api-使用文档)
 
 ---
 
@@ -422,8 +422,8 @@ get_motor_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbst
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `pos` | `float` | Motor position (rad) |
-| `motor_speed` | `float` | Motor velocity (rad/s) |
+| `position` | `float` | Motor position (rad) |
+| `velocity` | `float` | Motor velocity (rad/s) |
 | `current` | `float` | Motor current (A) |
 | `torque` | `float` | Motor torque (N·m) |
 
@@ -438,7 +438,7 @@ robot.connect()
 
 ms = robot.get_motor_states(1)
 if ms is not None:
-    print(ms.msg.pos, ms.msg.motor_speed, ms.msg.current, ms.msg.torque)
+    print(ms.msg.position, ms.msg.velocity, ms.msg.current, ms.msg.torque)
     print(ms.hz, ms.timestamp)
 ```
 
@@ -602,7 +602,7 @@ set_motion_mode(self, motion_mode: Literal["p", "j", "l", "c", "mit", "js"] = "p
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `motion_mode` | `str` | Motion mode: `"p"` / `"j"` / `"l"` / `"c"` / `"mit"` / `"js"` (it is recommended to use `robot.OPTIONS.MOTION_MODE.xxx` constants) |
+| `motion_mode` | `str` | Motion mode, valid values: `"p"` / `"j"` / `"l"` / `"c"` / `"mit"` / `"js"`, default: `"p"` (it is recommended to use `robot.OPTIONS.MOTION_MODE.xxx` constants) |
 
 **Usage Example:**
 
@@ -768,11 +768,11 @@ print("target_flange_pose =", target_flange_pose)
 
 ---
 
-## Master-Slave Arm
+## Leader-Follower Arm
 
 ### Set Normal Mode — `set_normal_mode()`
 
-**Description:** Set the robotic arm to normal control mode (single-arm mode). Commonly used to switch back from master-slave/linked mode to normal mode; also enables CAN push.
+**Description:** Set the robotic arm to normal control mode (single-arm mode). Commonly used to switch back from leader-follower/linked mode to normal mode; also enables CAN push.
 
 **Function Definition:**
 
@@ -794,16 +794,16 @@ robot.set_normal_mode()
 
 ---
 
-### Set Master Mode — `set_master_mode()`
+### Set Leader Mode — `set_leader_mode()`
 
-**Description:** Set the robotic arm to **master arm zero-force drag mode** (the "master" in a master-slave coordination scenario). In this mode, the master arm is typically in a draggable/zero-force drag state; the slave arm's controlled state needs to be configured via `set_slave_mode()`.
+**Description:** Set the robotic arm to **leader arm zero-force drag mode** (the "leader" in a leader-follower coordination scenario). In this mode, the leader arm is typically in a draggable/zero-force drag state; the follower arm's controlled state needs to be configured via `set_follower_mode()`.
 
-> **Tip:** This mode is used for master-slave arm linkage/teaching scenarios. If using a single arm only, this interface can be ignored.
+> **Tip:** This mode is used for leader-follower arm linkage/teaching scenarios. If using a single arm only, this interface can be ignored.
 
 **Function Definition:**
 
 ```python
-set_master_mode(self) -> None
+set_leader_mode(self) -> None
 ```
 
 **Usage Example:**
@@ -815,19 +815,19 @@ cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
-robot.set_master_mode()
+robot.set_leader_mode()
 ```
 
 ---
 
-### Set Slave Mode — `set_slave_mode()`
+### Set Follower Mode — `set_follower_mode()`
 
-**Description:** Set the robotic arm to **slave arm controlled mode** (the "slave" in a master-slave coordination scenario). The slave arm follows the master arm's control/commands. Used in conjunction with `set_master_mode()`.
+**Description:** Set the robotic arm to **follower arm controlled mode** (the "follower" in a leader-follower coordination scenario). The follower arm follows the leader arm's control/commands. Used in conjunction with `set_leader_mode()`.
 
 **Function Definition:**
 
 ```python
-set_slave_mode(self) -> None
+set_follower_mode(self) -> None
 ```
 
 **Usage Example:**
@@ -839,19 +839,19 @@ cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
-robot.set_slave_mode()
+robot.set_follower_mode()
 ```
 
 ---
 
-### Get Master Joint Angles — `get_master_joint_angles()`
+### Get Leader Joint Angles — `get_leader_joint_angles()`
 
-**Description:** Get the master arm joint angle message, used for controlling the slave arm.
+**Description:** Get the leader arm joint angle message, used for controlling the follower arm.
 
 **Function Definition:**
 
 ```python
-get_master_joint_angles(self) -> MessageAbstract[list[float]] | None
+get_leader_joint_angles(self) -> MessageAbstract[list[float]] | None
 ```
 
 **Return Value:** `MessageAbstract[list[float]] | None`
@@ -868,10 +868,10 @@ cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
-robot.set_master_mode()
+robot.set_leader_mode()
 
 while True:
-    mja = robot.get_master_joint_angles()
+    mja = robot.get_leader_joint_angles()
     if mja is not None:
         print(mja.msg)
         print(mja.hz, mja.timestamp)
@@ -896,7 +896,7 @@ enable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `joint_index` | `int` | Joint index: `1~7` enables a single joint; `255` enables all joints |
+| `joint_index` | `int` | Joint index: `1~7` enables a single joint; `255` enables all joints, default: `255` |
 
 **Return Value:** `bool` — `True` means enable succeeded.
 
@@ -932,7 +932,7 @@ disable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `joint_index` | `int` | Joint index: `1~7` disables a single joint; `255` disables all joints |
+| `joint_index` | `int` | Joint index: `1~7` disables a single joint; `255` disables all joints, default: `255` |
 
 **Return Value:** `bool` — `True` means disable succeeded.
 
@@ -1016,7 +1016,7 @@ move_j(self, joints: list[float]) -> None
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `joints` | `list[float]` | Target angle array of length 7: `[j1, j2, j3, j4, j5, j6, j7]` (unit: rad, precision: 1.74532925199e-5) |
+| `joints` | `list[float]` | Target angle array of length 7: `[j1, j2, j3, j4, j5, j6, j7]` (unit: rad, precision: 1.74532925199e-5). Joint limits depend on robot variant configuration |
 
 > **Note:** Consecutive execution of this command will overwrite the previous target value.
 
@@ -1052,9 +1052,9 @@ while True:
 
 ---
 
-### Joint Motion (Slave Mode) — `move_js()`
+### Joint Motion (Follower Mode) — `move_js()`
 
-**Description:** Switch the robotic arm to **JS (slave) mode** (MIT passthrough mode) and send joint target angles. Compared with `move_j`, `move_js` is more oriented toward "fast response" control: **no smoothing, no trajectory planning**; the controller/driver responds to the target angles as quickly as possible.
+**Description:** Switch the robotic arm to **JS (follower) mode** (MIT passthrough mode) and send joint target angles. Compared with `move_j`, `move_js` is more oriented toward "fast response" control: **no smoothing, no trajectory planning**; the controller/driver responds to the target angles as quickly as possible.
 
 **Function Definition:**
 
@@ -1066,7 +1066,7 @@ move_js(self, joints: list[float]) -> None
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `joints` | `list[float]` | Target angle array of length 7: `[j1, j2, j3, j4, j5, j6, j7]` (unit: rad, precision: 1.74532925199e-5) |
+| `joints` | `list[float]` | Target angle array of length 7: `[j1, j2, j3, j4, j5, j6, j7]` (unit: rad, precision: 1.74532925199e-5). Joint limits depend on robot variant configuration |
 
 > **Warning: Extremely High Risk**
 >
@@ -1107,7 +1107,7 @@ move_p(self, pose: list[float]) -> None
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `pose` | `list[float]` | Target pose `[x, y, z, roll, pitch, yaw]`: `x, y, z` are position (m, precision: 1e-6); `roll, pitch, yaw` are Euler angles (rad, precision: 1.74532925199e-5) |
+| `pose` | `list[float]` | Target pose `[x, y, z, roll, pitch, yaw]`: `x, y, z` are position (m, precision: 1e-6); `roll, pitch, yaw` are Euler angles (rad, precision: 1.74532925199e-5), range: `roll/yaw` ∈ `[-π, π]`, `pitch` ∈ `[-π/2, π/2]` |
 
 > **Note:** Consecutive execution of this command will overwrite the previous target value.
 
@@ -1157,7 +1157,7 @@ move_l(self, pose: list[float]) -> None
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `pose` | `list[float]` | Target pose `[x, y, z, roll, pitch, yaw]`: `x, y, z` are position (m, precision: 1e-6); `roll, pitch, yaw` are Euler angles (rad, precision: 1.74532925199e-5) |
+| `pose` | `list[float]` | Target pose `[x, y, z, roll, pitch, yaw]`: `x, y, z` are position (m, precision: 1e-6); `roll, pitch, yaw` are Euler angles (rad, precision: 1.74532925199e-5), range: `roll/yaw` ∈ `[-π, π]`, `pitch` ∈ `[-π/2, π/2]` |
 
 > **Note:** Although consecutive execution of this command can overwrite the previous target, since the underlying layer needs to re-plan the linear trajectory for each new point received, **this command cannot be used to continuously send target points**.
 
@@ -1207,9 +1207,9 @@ move_c(self, start_pose: list[float], mid_pose: list[float], end_pose: list[floa
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `start_pose` | `list[float]` | Start pose `[x, y, z, roll, pitch, yaw]` (m / rad) |
-| `mid_pose` | `list[float]` | Midpoint pose `[x, y, z, roll, pitch, yaw]` (m / rad) |
-| `end_pose` | `list[float]` | End pose `[x, y, z, roll, pitch, yaw]` (m / rad) |
+| `start_pose` | `list[float]` | Start pose `[x, y, z, roll, pitch, yaw]` (m / rad). Orientation range: `roll/yaw` ∈ `[-π, π]`, `pitch` ∈ `[-π/2, π/2]` |
+| `mid_pose` | `list[float]` | Midpoint pose `[x, y, z, roll, pitch, yaw]` (m / rad). Orientation range: `roll/yaw` ∈ `[-π, π]`, `pitch` ∈ `[-π/2, π/2]` |
+| `end_pose` | `list[float]` | End pose `[x, y, z, roll, pitch, yaw]` (m / rad). Orientation range: `roll/yaw` ∈ `[-π, π]`, `pitch` ∈ `[-π/2, π/2]` |
 
 **Usage Example:**
 
@@ -1325,6 +1325,7 @@ for i in range(1, robot.joint_nums + 1):
 
 ## 目录
 
+- [切换到 English](#nero-api-documentation)
 - [导入模块](#导入模块)
 - [创建实例并连接](#创建实例并连接)
   - [创建配置参数 — create_agx_arm_config()](#创建配置参数--create_agx_arm_config)
@@ -1350,23 +1351,22 @@ for i in range(1, robot.joint_nums + 1):
   - [获取 TCP 位姿 — get_tcp_pose()](#获取-tcp-位姿--get_tcp_pose)
   - [法兰位姿转 TCP 位姿 — get_flange2tcp_pose()](#法兰位姿转-tcp-位姿--get_flange2tcp_pose)
   - [TCP 位姿转法兰位姿 — get_tcp2flange_pose()](#tcp-位姿转法兰位姿--get_tcp2flange_pose)
-- [主从臂](#主从臂)
+- [Leader-Follower 臂](#leader-follower-臂)
   - [设定正常模式 — set_normal_mode()](#设定正常模式--set_normal_mode)
-  - [设定主臂模式 — set_master_mode()](#设定主臂模式--set_master_mode)
-  - [设定从臂模式 — set_slave_mode()](#设定从臂模式--set_slave_mode)
-  - [读取主臂关节角度 — get_master_joint_angles()](#读取主臂关节角度--get_master_joint_angles)
+  - [设定主导臂（Leader）模式 — set_leader_mode()](#设定主导臂leader模式--set_leader_mode)
+  - [设定跟随臂（Follower）模式 — set_follower_mode()](#设定跟随臂follower模式--set_follower_mode)
+  - [读取主导臂（Leader）关节角度 — get_leader_joint_angles()](#读取主导臂leader关节角度--get_leader_joint_angles)
 - [运动控制](#运动控制)
   - [使能 — enable()](#使能--enable)
   - [失能 — disable()](#失能--disable)
   - [重置 — reset()](#重置--reset)
   - [电子急停 — electronic_emergency_stop()](#电子急停--electronic_emergency_stop)
   - [关节运动 — move_j()](#关节运动--move_j)
-  - [关节运动 (从臂模式) — move_js()](#关节运动-从臂模式--move_js)
+  - [关节运动 (Follower 模式) — move_js()](#关节运动-follower-模式--move_js)
   - [点到点运动 — move_p()](#点到点运动--move_p)
   - [直线运动 — move_l()](#直线运动--move_l)
   - [圆弧运动 — move_c()](#圆弧运动--move_c)
   - [单关节 MIT 控制 — move_mit()](#单关节-mit-控制--move_mit)
-- [切换到 English](#nero-api-documentation)
 
 ---
 
@@ -1743,8 +1743,8 @@ get_motor_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbst
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `pos` | `float` | 电机位置（rad） |
-| `motor_speed` | `float` | 电机速度（rad/s） |
+| `position` | `float` | 电机位置（rad） |
+| `velocity` | `float` | 电机速度（rad/s） |
 | `current` | `float` | 电机电流（A） |
 | `torque` | `float` | 电机扭矩（N·m） |
 
@@ -1759,7 +1759,7 @@ robot.connect()
 
 ms = robot.get_motor_states(1)
 if ms is not None:
-    print(ms.msg.pos, ms.msg.motor_speed, ms.msg.current, ms.msg.torque)
+    print(ms.msg.position, ms.msg.velocity, ms.msg.current, ms.msg.torque)
     print(ms.hz, ms.timestamp)
 ```
 
@@ -1923,7 +1923,7 @@ set_motion_mode(self, motion_mode: Literal["p", "j", "l", "c", "mit", "js"] = "p
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `motion_mode` | `str` | 运动模式：`"p"` / `"j"` / `"l"` / `"c"` / `"mit"` / `"js"`（建议使用 `robot.OPTIONS.MOTION_MODE.xxx` 常量） |
+| `motion_mode` | `str` | 运动模式，可选值：`"p"` / `"j"` / `"l"` / `"c"` / `"mit"` / `"js"`，默认：`"p"`（建议使用 `robot.OPTIONS.MOTION_MODE.xxx` 常量） |
 
 **使用示例：**
 
@@ -2089,11 +2089,11 @@ print("target_flange_pose =", target_flange_pose)
 
 ---
 
-## 主从臂
+## Leader-Follower 臂
 
 ### 设定正常模式 — `set_normal_mode()`
 
-**功能说明：** 将机械臂设置为正常控制模式（单臂模式）。常用于从主从/联动模式切回普通模式，同时会开启 CAN 推送。
+**功能说明：** 将机械臂设置为正常控制模式（单臂模式）。常用于从 Leader-Follower/联动模式切回普通模式，同时会开启 CAN 推送。
 
 **函数定义：**
 
@@ -2115,16 +2115,16 @@ robot.set_normal_mode()
 
 ---
 
-### 设定主臂模式 — `set_master_mode()`
+### 设定主导臂（Leader）模式 — `set_leader_mode()`
 
-**功能说明：** 将机械臂设置为 **主臂零力拖动模式**（主从协同场景下的"主臂"）。进入该模式后，主臂通常处于可拖动/零力拖动状态；从臂的受控状态需通过 `set_slave_mode()` 配置。
+**功能说明：** 将机械臂设置为 **主导臂（Leader Arm）零力拖动模式**（Leader-Follower 协同场景下的"Leader"）。进入该模式后，主导臂（Leader Arm）通常处于可拖动/零力拖动状态；跟随臂（Follower Arm）的受控状态需通过 `set_follower_mode()` 配置。
 
-> **提示：** 该模式用于主从臂联动/示教等场景。若仅使用单臂，可忽略该接口。
+> **提示：** 该模式用于 Leader-Follower 臂联动/示教等场景。若仅使用单臂，可忽略该接口。
 
 **函数定义：**
 
 ```python
-set_master_mode(self) -> None
+set_leader_mode(self) -> None
 ```
 
 **使用示例：**
@@ -2136,19 +2136,19 @@ cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
-robot.set_master_mode()
+robot.set_leader_mode()
 ```
 
 ---
 
-### 设定从臂模式 — `set_slave_mode()`
+### 设定跟随臂（Follower）模式 — `set_follower_mode()`
 
-**功能说明：** 将机械臂设置为 **从臂受控模式**（主从协同场景下的"从臂"），从臂跟随主臂控制/指令运行。可与 `set_master_mode()` 配套使用。
+**功能说明：** 将机械臂设置为 **跟随臂（Follower Arm）受控模式**（Leader-Follower 协同场景下的"Follower"），跟随臂（Follower Arm）跟随主导臂（Leader Arm）控制/指令运行。可与 `set_leader_mode()` 配套使用。
 
 **函数定义：**
 
 ```python
-set_slave_mode(self) -> None
+set_follower_mode(self) -> None
 ```
 
 **使用示例：**
@@ -2160,19 +2160,19 @@ cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
-robot.set_slave_mode()
+robot.set_follower_mode()
 ```
 
 ---
 
-### 读取主臂关节角度 — `get_master_joint_angles()`
+### 读取主导臂（Leader）关节角度 — `get_leader_joint_angles()`
 
-**功能说明：** 获取主臂关节角度消息，用于控制从臂。
+**功能说明：** 获取主导臂（Leader Arm）关节角度消息，用于控制跟随臂（Follower Arm）。
 
 **函数定义：**
 
 ```python
-get_master_joint_angles(self) -> MessageAbstract[list[float]] | None
+get_leader_joint_angles(self) -> MessageAbstract[list[float]] | None
 ```
 
 **返回值：** `MessageAbstract[list[float]] | None`
@@ -2189,10 +2189,10 @@ cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
-robot.set_master_mode()
+robot.set_leader_mode()
 
 while True:
-    mja = robot.get_master_joint_angles()
+    mja = robot.get_leader_joint_angles()
     if mja is not None:
         print(mja.msg)
         print(mja.hz, mja.timestamp)
@@ -2217,7 +2217,7 @@ enable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `joint_index` | `int` | 关节序号：`1~7` 使能单关节；`255` 使能全部关节 |
+| `joint_index` | `int` | 关节序号：`1~7` 使能单关节；`255` 使能全部关节，默认：`255` |
 
 **返回值：** `bool` — `True` 为使能成功。
 
@@ -2253,7 +2253,7 @@ disable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `joint_index` | `int` | 关节序号：`1~7` 失能单关节；`255` 失能全部关节 |
+| `joint_index` | `int` | 关节序号：`1~7` 失能单关节；`255` 失能全部关节，默认：`255` |
 
 **返回值：** `bool` — `True` 为失能成功。
 
@@ -2337,7 +2337,7 @@ move_j(self, joints: list[float]) -> None
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `joints` | `list[float]` | 长度 7 的目标角度数组 `[j1, j2, j3, j4, j5, j6, j7]`（单位：rad，精度：1.74532925199e-5） |
+| `joints` | `list[float]` | 长度 7 的目标角度数组 `[j1, j2, j3, j4, j5, j6, j7]`（单位：rad，精度：1.74532925199e-5）。关节限位取决于机械臂型号配置 |
 
 > **注意：** 连续执行该指令会覆盖上一次的目标值。
 
@@ -2373,9 +2373,9 @@ while True:
 
 ---
 
-### 关节运动 (从臂模式) — `move_js()`
+### 关节运动 (Follower 模式) — `move_js()`
 
-**功能说明：** 将机械臂切换到 **JS（从臂）模式**（MIT 透传模式），并下发关节目标角度。与 `move_j` 相比，`move_js` 更偏向"快速响应"控制：**不做平滑处理、无轨迹规划**，控制器/驱动器会尽可能快地响应目标角度。
+**功能说明：** 将机械臂切换到 **JS（Follower）模式**（MIT 透传模式），并下发关节目标角度。与 `move_j` 相比，`move_js` 更偏向"快速响应"控制：**不做平滑处理、无轨迹规划**，控制器/驱动器会尽可能快地响应目标角度。
 
 **函数定义：**
 
@@ -2387,7 +2387,7 @@ move_js(self, joints: list[float]) -> None
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `joints` | `list[float]` | 长度 7 的目标角度数组 `[j1, j2, j3, j4, j5, j6, j7]`（单位：rad，精度：1.74532925199e-5） |
+| `joints` | `list[float]` | 长度 7 的目标角度数组 `[j1, j2, j3, j4, j5, j6, j7]`（单位：rad，精度：1.74532925199e-5）。关节限位取决于机械臂型号配置 |
 
 > **⚠️ 风险等级：极高**
 >
@@ -2428,7 +2428,7 @@ move_p(self, pose: list[float]) -> None
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `pose` | `list[float]` | 目标位姿 `[x, y, z, roll, pitch, yaw]`：`x, y, z` 为位置（m，精度：1e-6）；`roll, pitch, yaw` 为欧拉角（rad，精度：1.74532925199e-5） |
+| `pose` | `list[float]` | 目标位姿 `[x, y, z, roll, pitch, yaw]`：`x, y, z` 为位置（m，精度：1e-6）；`roll, pitch, yaw` 为欧拉角（rad，精度：1.74532925199e-5），范围：`roll/yaw` ∈ `[-π, π]`，`pitch` ∈ `[-π/2, π/2]` |
 
 > **注意：** 连续执行该指令会覆盖上一次的目标值。
 
@@ -2478,7 +2478,7 @@ move_l(self, pose: list[float]) -> None
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `pose` | `list[float]` | 目标位姿 `[x, y, z, roll, pitch, yaw]`：`x, y, z` 为位置（m，精度：1e-6）；`roll, pitch, yaw` 为欧拉角（rad，精度：1.74532925199e-5） |
+| `pose` | `list[float]` | 目标位姿 `[x, y, z, roll, pitch, yaw]`：`x, y, z` 为位置（m，精度：1e-6）；`roll, pitch, yaw` 为欧拉角（rad，精度：1.74532925199e-5），范围：`roll/yaw` ∈ `[-π, π]`，`pitch` ∈ `[-π/2, π/2]` |
 
 > **注意：** 连续执行该指令虽然可以覆盖上一次的目标，但由于底层每接收到新点位都需要重新进行直线规划，因此 **不能使用该指令连续发送目标点**。
 
@@ -2528,9 +2528,9 @@ move_c(self, start_pose: list[float], mid_pose: list[float], end_pose: list[floa
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `start_pose` | `list[float]` | 起点位姿 `[x, y, z, roll, pitch, yaw]`（m / rad） |
-| `mid_pose` | `list[float]` | 中间点位姿 `[x, y, z, roll, pitch, yaw]`（m / rad） |
-| `end_pose` | `list[float]` | 终点位姿 `[x, y, z, roll, pitch, yaw]`（m / rad） |
+| `start_pose` | `list[float]` | 起点位姿 `[x, y, z, roll, pitch, yaw]`（m / rad）。姿态范围：`roll/yaw` ∈ `[-π, π]`，`pitch` ∈ `[-π/2, π/2]` |
+| `mid_pose` | `list[float]` | 中间点位姿 `[x, y, z, roll, pitch, yaw]`（m / rad）。姿态范围：`roll/yaw` ∈ `[-π, π]`，`pitch` ∈ `[-π/2, π/2]` |
+| `end_pose` | `list[float]` | 终点位姿 `[x, y, z, roll, pitch, yaw]`（m / rad）。姿态范围：`roll/yaw` ∈ `[-π, π]`，`pitch` ∈ `[-π/2, π/2]` |
 
 **使用示例：**
 

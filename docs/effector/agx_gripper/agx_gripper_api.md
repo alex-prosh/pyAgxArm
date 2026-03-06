@@ -4,6 +4,7 @@
 
 ## Table of Contents
 
+- [Switch to 中文](#agxgripper-夹爪-api-使用文档)
 - [Create Instance](#create-instance)
   - [Create Arm Driver Instance — AgxArmFactory.create_arm()](#create-arm-driver-instance--agxarmfactorycreate_arm)
   - [Create End Effector Driver Instance — init_effector()](#create-end-effector-driver-instance--init_effector)
@@ -21,7 +22,6 @@
   - [Disable Gripper — disable_gripper()](#disable-gripper--disable_gripper)
   - [Calibrate Gripper — calibrate_gripper()](#calibrate-gripper--calibrate_gripper)
   - [Set Gripper Teaching Pendant Parameters — set_gripper_teaching_pendant_param()](#set-gripper-teaching-pendant-parameters--set_gripper_teaching_pendant_param)
-- [Switch to 中文](#agxgripper-夹爪-api-使用文档)
 
 ---
 
@@ -234,8 +234,8 @@ get_gripper_status(self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `width` | `float` | Current gripper opening width, unit: m |
-| `force` | `float` | Current gripping force, unit: N |
+| `width` | `float` | Current gripper opening width, unit: m, range: [0.0, 0.1] |
+| `force` | `float` | Current gripping force, unit: N, range: [0.0, 3.0] |
 | `foc_status` | `object` | Driver status collection (see table below) |
 
 `foc_status` sub-fields (`gs.msg.foc_status.xxx`):
@@ -275,7 +275,7 @@ while True:
 
 ### Get Gripper Control States — `get_gripper_ctrl_states()`
 
-**Description:** Reads the feedback/echo status of gripper control commands (current width, force, status code, homing command echo, etc.).
+**Description:** Reads the feedback/echo status of the leader arm's gripper control commands (current width, force, status code, homing command echo, etc.).
 
 **Function Definition:**
 
@@ -293,8 +293,8 @@ get_gripper_ctrl_states(self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `width` | `float` | Current gripper opening width, unit: m |
-| `force` | `float` | Current gripping force, unit: N |
+| `width` | `float` | Current gripper opening width, unit: m, range: [0.0, 0.1] |
+| `force` | `float` | Current gripping force, unit: N, range: [0.0, 3.0] |
 | `status_code` | `int` | Status code (related to the control command) |
 | `set_zero` | `int` | Homing/zero calibration field (related to the control command) |
 
@@ -342,7 +342,7 @@ get_gripper_teaching_pendant_param(
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `teaching_range_per` | `int` | Teaching range (percentage-style value), range: [100, 200], applicable only to the **master arm** in a master-slave setup: used to amplify the master arm's control range and map it to the slave arm |
+| `teaching_range_per` | `int` | Teaching range (percentage-style value), range: [100, 200], applicable only to the **leader arm** in a leader-follower setup: used to amplify the leader arm's control range and map it to the follower arm |
 | `max_range_config` | `float` | Max range config, unit: m, common values: 0 / 0.07 / 0.1 |
 | `teaching_friction` | `int` | Teaching friction, range: 1..10, **higher values are more sensitive**: easier to open/close the gripper, requiring less force |
 
@@ -506,7 +506,7 @@ set_gripper_teaching_pendant_param(
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `teaching_range_per` | `int` | Teaching range (percentage-style value), range: [100, 200], applicable only to the **master arm** in a master-slave setup: used to amplify the master arm's control range and map it to the slave arm |
+| `teaching_range_per` | `int` | Teaching range (percentage-style value), range: [100, 200], applicable only to the **leader arm** in a leader-follower setup: used to amplify the leader arm's control range and map it to the follower arm |
 | `max_range_config` | `float` | Max range config (unit: m), only supports: 0 (invalid value) / 0.07 / 0.1 |
 | `teaching_friction` | `int` | Teaching friction, range: 1..10, **higher values are more sensitive**: easier to open/close the gripper, requiring less force |
 | `timeout` | `float` | ACK/verification wait timeout (seconds), default `1.0` |
@@ -547,6 +547,7 @@ if success:
 
 ## 目录
 
+- [切换到 English](#agxgripper-api-documentation)
 - [创建实例](#创建实例)
   - [创建机械臂 Driver 实例 — AgxArmFactory.create_arm()](#创建机械臂-driver-实例--agxarmfaborycreate_arm)
   - [创建末端执行器 Driver 实例 — init_effector()](#创建末端执行器-driver-实例--init_effector)
@@ -564,7 +565,6 @@ if success:
   - [禁用夹爪 — disable_gripper()](#禁用夹爪--disable_gripper)
   - [夹爪置零/标定 — calibrate_gripper()](#夹爪置零标定--calibrate_gripper)
   - [配置夹爪/示教器参数 — set_gripper_teaching_pendant_param()](#配置夹爪示教器参数--set_gripper_teaching_pendant_param)
-- [切换到 English](#agxgripper-api-documentation)
 
 ---
 
@@ -777,8 +777,8 @@ get_gripper_status(self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `width` | `float` | 当前夹爪开口宽度，单位：m |
-| `force` | `float` | 当前夹持力，单位：N |
+| `width` | `float` | 当前夹爪开口宽度，单位：m，范围：[0.0, 0.1] |
+| `force` | `float` | 当前夹持力，单位：N，范围：[0.0, 3.0] |
 | `foc_status` | `object` | 驱动状态集合（见下表） |
 
 `foc_status` 子字段（`gs.msg.foc_status.xxx`）：
@@ -818,7 +818,7 @@ while True:
 
 ### 读取末端执行器控制消息 — `get_gripper_ctrl_states()`
 
-**功能说明：** 读取夹爪控制指令的反馈/回显状态（当前宽度、力、状态码、回零指令回显等）。
+**功能说明：** 读取主导臂（Leader Arm）夹爪控制指令的反馈/回显状态（当前宽度、力、状态码、回零指令回显等）。
 
 **函数定义：**
 
@@ -836,8 +836,8 @@ get_gripper_ctrl_states(self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `width` | `float` | 当前夹爪开口宽度，单位：m |
-| `force` | `float` | 当前夹持力，单位：N |
+| `width` | `float` | 当前夹爪开口宽度，单位：m，范围：[0.0, 0.1] |
+| `force` | `float` | 当前夹持力，单位：N，范围：[0.0, 3.0] |
 | `status_code` | `int` | 状态码（与控制指令相关） |
 | `set_zero` | `int` | 回零/置零相关字段（与控制指令相关） |
 
@@ -885,7 +885,7 @@ get_gripper_teaching_pendant_param(
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `teaching_range_per` | `int` | 示教范围（百分比式值），范围：[100, 200]，仅适用于主从臂的**主臂**：用于放大主臂的控制行程并映射给从臂 |
+| `teaching_range_per` | `int` | 示教范围（百分比式值），范围：[100, 200]，仅适用于 Leader-Follower 臂的**主导臂（Leader Arm）**：用于放大主导臂（Leader Arm）的控制行程并映射给跟随臂（Follower Arm） |
 | `max_range_config` | `float` | 最大行程配置，单位：m，常见值：0 / 0.07 / 0.1 |
 | `teaching_friction` | `int` | 示教摩擦，范围：1..10，**值越大越灵敏**：更容易张合夹爪，所需用力更小 |
 
@@ -1049,7 +1049,7 @@ set_gripper_teaching_pendant_param(
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `teaching_range_per` | `int` | 示教范围（百分比式值），范围：[100, 200]，仅适用于主从臂的**主臂**：用于放大主臂的控制行程并映射给从臂 |
+| `teaching_range_per` | `int` | 示教范围（百分比式值），范围：[100, 200]，仅适用于 Leader-Follower 臂的**主导臂（Leader Arm）**：用于放大主导臂（Leader Arm）的控制行程并映射给跟随臂（Follower Arm） |
 | `max_range_config` | `float` | 最大行程配置（单位：m），仅支持：0（无效值） / 0.07 / 0.1 |
 | `teaching_friction` | `int` | 示教摩擦，范围：1..10，**值越大越灵敏**：更容易张合夹爪，所需用力更小 |
 | `timeout` | `float` | 等待 ACK/校验超时时间（秒），默认 `1.0` |

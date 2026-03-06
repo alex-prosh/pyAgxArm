@@ -4,12 +4,12 @@
 
 ## Table of Contents
 
-- [Background](#background)
+- [Switch to 中文](#ubuntu-2404-安装第三方-pip-包的方法)
+- [Environment](#environment)
 - [Method 1: Virtual Environment (recommended)](#method-1-virtual-environment-recommended)
 - [Method 2: Force install to system environment](#method-2-force-install-to-system-environment)
-- [Switch to 中文](#ubuntu-2404-安装第三方-pip-包的方法)
 
-## Background
+## Environment
 
 On Ubuntu 24.04, direct `pip3 install pyAgxArm` in system Python may fail due to package management restrictions.
 
@@ -57,12 +57,12 @@ After that, `pip install` works similarly to Ubuntu 22.04 and earlier.
 
 ## 目录
 
-- [背景说明](#背景说明)
+- [切换到 English](#ubuntu-2404-pip-installation-guide)
+- [环境说明](#环境说明)
 - [方法一：使用虚拟环境（推荐）](#方法一使用虚拟环境推荐)
 - [方法二：强制安装到系统环境](#方法二强制安装到系统环境)
-- [切换到 English](#ubuntu-2404-pip-installation-guide)
 
-## 背景说明
+## 环境说明
 
 在 Ubuntu 24.04 系统环境下直接执行 `pip3 install pyAgxArm` 可能会报错，本文提供两种解决方案。
 

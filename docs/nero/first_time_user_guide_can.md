@@ -2,13 +2,13 @@
 
 > Step-by-step guide for first-time Nero robotic arm users using CAN communication.
 
-## Index
+## Table of Contents
 
+- [Switch to 中文](#nero-首次使用指南can)
 - [1. Environment Requirements](#1-environment-requirements)
 - [2. Hardware Connection and Software Flow](#2-hardware-connection-and-software-flow)
 - [3. Common Troubleshooting](#3-common-troubleshooting)
 - [Safety Notes](#safety-notes)
-- [Switch to 中文](#nero-首次使用指南can)
 
 ## 1. Environment Requirements
 
@@ -108,10 +108,10 @@ while True:
 
 ## 目录
 
+- [切换到 English](#nero-first-time-user-guide-can)
 - [一、环境要求](#一环境要求)
 - [二、硬件连接以及软件执行流程](#二硬件连接以及软件执行流程)
 - [三、常见错误排查](#三常见错误排查)
-- [切换到 English](#nero-first-time-user-guide-can)
 
 ## 一、环境要求
 

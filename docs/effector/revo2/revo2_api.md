@@ -4,6 +4,7 @@
 
 ## Table of Contents
 
+- [Switch to 中文](#revo2-灵巧手-api-使用文档)
 - [Create Instance and Connect](#create-instance-and-connect)
   - [Create Arm Driver Instance — AgxArmFactory.create\_arm()](#create-arm-driver-instance--agxarmfactorycreate_arm)
   - [Initialize End Effector — init\_effector()](#initialize-end-effector--init_effector)
@@ -22,7 +23,6 @@
   - [Speed Control — speed\_ctrl()](#speed-control--speed_ctrl)
   - [Current Control — current\_ctrl()](#current-control--current_ctrl)
   - [Position/Time Hybrid Control — position\_time\_ctrl()](#positiontime-hybrid-control--position_time_ctrl)
-- [Switch to 中文](#revo2-灵巧手-api-使用文档)
 
 ---
 
@@ -211,13 +211,13 @@ get_hand_status(self) -> Optional[MessageAbstract[FeedbackHandStatus]]
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `left_or_right` | `int` | Left/right hand flag: 01 left hand; 02 right hand |
-| `thumb_tip` | `int` | Thumb tip motor status: 0 idle; 1 running; 2 stalled |
-| `thumb_base` | `int` | Thumb base motor status: 0 idle; 1 running; 2 stalled |
-| `index_finger` | `int` | Index finger motor status: 0 idle; 1 running; 2 stalled |
-| `middle_finger` | `int` | Middle finger motor status: 0 idle; 1 running; 2 stalled |
-| `ring_finger` | `int` | Ring finger motor status: 0 idle; 1 running; 2 stalled |
-| `pinky_finger` | `int` | Pinky finger motor status: 0 idle; 1 running; 2 stalled |
+| `left_or_right` | `int` | Left/right hand flag: 1=left, 2=right, range: [1, 2] |
+| `thumb_tip` | `int` | Thumb tip motor status: 0=idle, 1=running, 2=stalled, range: [0, 2] |
+| `thumb_base` | `int` | Thumb base motor status: 0=idle, 1=running, 2=stalled, range: [0, 2] |
+| `index_finger` | `int` | Index finger motor status: 0=idle, 1=running, 2=stalled, range: [0, 2] |
+| `middle_finger` | `int` | Middle finger motor status: 0=idle, 1=running, 2=stalled, range: [0, 2] |
+| `ring_finger` | `int` | Ring finger motor status: 0=idle, 1=running, 2=stalled, range: [0, 2] |
+| `pinky_finger` | `int` | Pinky finger motor status: 0=idle, 1=running, 2=stalled, range: [0, 2] |
 
 **Usage Example:**
 
@@ -388,16 +388,16 @@ position_ctrl(
 ) -> None
 ```
 
-**Parameters:** All parameters are target positions, range: [0, 100].
+**Parameters:**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `thumb_tip` | `int` | Thumb tip position |
-| `thumb_base` | `int` | Thumb base position |
-| `index_finger` | `int` | Index finger position |
-| `middle_finger` | `int` | Middle finger position |
-| `ring_finger` | `int` | Ring finger position |
-| `pinky_finger` | `int` | Pinky finger position |
+| `thumb_tip` | `int` | Thumb tip position, range: [0, 100], default: 0 |
+| `thumb_base` | `int` | Thumb base position, range: [0, 100], default: 0 |
+| `index_finger` | `int` | Index finger position, range: [0, 100], default: 0 |
+| `middle_finger` | `int` | Middle finger position, range: [0, 100], default: 0 |
+| `ring_finger` | `int` | Ring finger position, range: [0, 100], default: 0 |
+| `pinky_finger` | `int` | Pinky finger position, range: [0, 100], default: 0 |
 
 **Usage Example:**
 
@@ -436,7 +436,16 @@ speed_ctrl(
 ) -> None
 ```
 
-**Parameters:** All parameters are target speeds, range: [-100, 100].
+**Parameters:**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `thumb_tip` | `int` | Thumb tip speed, range: [-100, 100], default: 0 |
+| `thumb_base` | `int` | Thumb base speed, range: [-100, 100], default: 0 |
+| `index_finger` | `int` | Index finger speed, range: [-100, 100], default: 0 |
+| `middle_finger` | `int` | Middle finger speed, range: [-100, 100], default: 0 |
+| `ring_finger` | `int` | Ring finger speed, range: [-100, 100], default: 0 |
+| `pinky_finger` | `int` | Pinky finger speed, range: [-100, 100], default: 0 |
 
 **Usage Example:**
 
@@ -471,7 +480,16 @@ current_ctrl(
 ) -> None
 ```
 
-**Parameters:** All parameters are target currents, range: [-100, 100].
+**Parameters:**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `thumb_tip` | `int` | Thumb tip current, range: [-100, 100], default: 0 |
+| `thumb_base` | `int` | Thumb base current, range: [-100, 100], default: 0 |
+| `index_finger` | `int` | Index finger current, range: [-100, 100], default: 0 |
+| `middle_finger` | `int` | Middle finger current, range: [-100, 100], default: 0 |
+| `ring_finger` | `int` | Ring finger current, range: [-100, 100], default: 0 |
+| `pinky_finger` | `int` | Pinky finger current, range: [-100, 100], default: 0 |
 
 **Usage Example:**
 
@@ -513,8 +531,13 @@ position_time_ctrl(
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `mode` | `str` | Control mode: `pos` position (0~100); `time` time (unit: 10ms, range 0~255) |
-| `thumb_tip` ~ `pinky_finger` | `int` | In `pos` mode: target position; in `time` mode: target time |
+| `mode` | `Literal['pos', 'time']` | Control mode, default: `'pos'` |
+| `thumb_tip` | `int` | Thumb tip: pos mode range [0, 100], time mode range [0, 255] (unit: 10 ms), default: 0 |
+| `thumb_base` | `int` | Thumb base: pos mode range [0, 100], time mode range [0, 255] (unit: 10 ms), default: 0 |
+| `index_finger` | `int` | Index finger: pos mode range [0, 100], time mode range [0, 255] (unit: 10 ms), default: 0 |
+| `middle_finger` | `int` | Middle finger: pos mode range [0, 100], time mode range [0, 255] (unit: 10 ms), default: 0 |
+| `ring_finger` | `int` | Ring finger: pos mode range [0, 100], time mode range [0, 255] (unit: 10 ms), default: 0 |
+| `pinky_finger` | `int` | Pinky finger: pos mode range [0, 100], time mode range [0, 255] (unit: 10 ms), default: 0 |
 
 **Usage Example:**
 
@@ -540,6 +563,7 @@ end_effector.position_time_ctrl(mode="time", thumb_tip=200)
 
 ## 目录
 
+- [切换到 English](#revo2-api-documentation)
 - [创建实例并连接](#创建实例并连接)
   - [创建机械臂 Driver 实例 — AgxArmFactory.create\_arm()](#创建机械臂-driver-实例--agxarmfactorycreate_arm)
   - [初始化末端执行器 — init\_effector()](#初始化末端执行器--init_effector)
@@ -558,7 +582,6 @@ end_effector.position_time_ctrl(mode="time", thumb_tip=200)
   - [速度控制 — speed\_ctrl()](#速度控制--speed_ctrl)
   - [电流控制 — current\_ctrl()](#电流控制--current_ctrl)
   - [位置/时间混合控制 — position\_time\_ctrl()](#位置时间混合控制--position_time_ctrl)
-- [切换到 English](#revo2-api-documentation)
 
 ---
 
@@ -747,13 +770,13 @@ get_hand_status(self) -> Optional[MessageAbstract[FeedbackHandStatus]]
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `left_or_right` | `int` | 左右手标志：01 左手；02 右手 |
-| `thumb_tip` | `int` | 拇指尖电机状态：0 空闲；1 运行；2 堵转 |
-| `thumb_base` | `int` | 拇指根电机状态：0 空闲；1 运行；2 堵转 |
-| `index_finger` | `int` | 食指电机状态：0 空闲；1 运行；2 堵转 |
-| `middle_finger` | `int` | 中指电机状态：0 空闲；1 运行；2 堵转 |
-| `ring_finger` | `int` | 无名指电机状态：0 空闲；1 运行；2 堵转 |
-| `pinky_finger` | `int` | 小指电机状态：0 空闲；1 运行；2 堵转 |
+| `left_or_right` | `int` | 左右手标志：1=左手，2=右手，范围：[1, 2] |
+| `thumb_tip` | `int` | 拇指尖电机状态：0=空闲，1=运行，2=堵转，范围：[0, 2] |
+| `thumb_base` | `int` | 拇指根电机状态：0=空闲，1=运行，2=堵转，范围：[0, 2] |
+| `index_finger` | `int` | 食指电机状态：0=空闲，1=运行，2=堵转，范围：[0, 2] |
+| `middle_finger` | `int` | 中指电机状态：0=空闲，1=运行，2=堵转，范围：[0, 2] |
+| `ring_finger` | `int` | 无名指电机状态：0=空闲，1=运行，2=堵转，范围：[0, 2] |
+| `pinky_finger` | `int` | 小指电机状态：0=空闲，1=运行，2=堵转，范围：[0, 2] |
 
 **使用示例：**
 
@@ -924,16 +947,16 @@ position_ctrl(
 ) -> None
 ```
 
-**参数说明：** 各参数均为目标位置，范围：[0, 100]。
+**参数说明：**
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `thumb_tip` | `int` | 拇指尖位置 |
-| `thumb_base` | `int` | 拇指根位置 |
-| `index_finger` | `int` | 食指位置 |
-| `middle_finger` | `int` | 中指位置 |
-| `ring_finger` | `int` | 无名指位置 |
-| `pinky_finger` | `int` | 小指位置 |
+| `thumb_tip` | `int` | 拇指尖位置，范围：[0, 100]，默认：0 |
+| `thumb_base` | `int` | 拇指根位置，范围：[0, 100]，默认：0 |
+| `index_finger` | `int` | 食指位置，范围：[0, 100]，默认：0 |
+| `middle_finger` | `int` | 中指位置，范围：[0, 100]，默认：0 |
+| `ring_finger` | `int` | 无名指位置，范围：[0, 100]，默认：0 |
+| `pinky_finger` | `int` | 小指位置，范围：[0, 100]，默认：0 |
 
 **使用示例：**
 
@@ -972,7 +995,16 @@ speed_ctrl(
 ) -> None
 ```
 
-**参数说明：** 各参数均为目标速度，范围：[-100, 100]。
+**参数说明：**
+
+| 名称 | 类型 | 说明 |
+| --- | --- | --- |
+| `thumb_tip` | `int` | 拇指尖速度，范围：[-100, 100]，默认：0 |
+| `thumb_base` | `int` | 拇指根速度，范围：[-100, 100]，默认：0 |
+| `index_finger` | `int` | 食指速度，范围：[-100, 100]，默认：0 |
+| `middle_finger` | `int` | 中指速度，范围：[-100, 100]，默认：0 |
+| `ring_finger` | `int` | 无名指速度，范围：[-100, 100]，默认：0 |
+| `pinky_finger` | `int` | 小指速度，范围：[-100, 100]，默认：0 |
 
 **使用示例：**
 
@@ -1007,7 +1039,16 @@ current_ctrl(
 ) -> None
 ```
 
-**参数说明：** 各参数均为目标电流，范围：[-100, 100]。
+**参数说明：**
+
+| 名称 | 类型 | 说明 |
+| --- | --- | --- |
+| `thumb_tip` | `int` | 拇指尖电流，范围：[-100, 100]，默认：0 |
+| `thumb_base` | `int` | 拇指根电流，范围：[-100, 100]，默认：0 |
+| `index_finger` | `int` | 食指电流，范围：[-100, 100]，默认：0 |
+| `middle_finger` | `int` | 中指电流，范围：[-100, 100]，默认：0 |
+| `ring_finger` | `int` | 无名指电流，范围：[-100, 100]，默认：0 |
+| `pinky_finger` | `int` | 小指电流，范围：[-100, 100]，默认：0 |
 
 **使用示例：**
 
@@ -1049,8 +1090,13 @@ position_time_ctrl(
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `mode` | `str` | 控制模式：`pos` 位置（0 ~ 100）；`time` 时间（单位 10ms，范围 0~255） |
-| `thumb_tip` ~ `pinky_finger` | `int` | 在 `pos` 模式下为目标位置；在 `time` 模式下为目标时间 |
+| `mode` | `Literal['pos', 'time']` | 控制模式，默认：`'pos'` |
+| `thumb_tip` | `int` | 拇指尖：pos 模式范围 [0, 100]，time 模式范围 [0, 255]（单位：10 ms），默认：0 |
+| `thumb_base` | `int` | 拇指根：pos 模式范围 [0, 100]，time 模式范围 [0, 255]（单位：10 ms），默认：0 |
+| `index_finger` | `int` | 食指：pos 模式范围 [0, 100]，time 模式范围 [0, 255]（单位：10 ms），默认：0 |
+| `middle_finger` | `int` | 中指：pos 模式范围 [0, 100]，time 模式范围 [0, 255]（单位：10 ms），默认：0 |
+| `ring_finger` | `int` | 无名指：pos 模式范围 [0, 100]，time 模式范围 [0, 255]（单位：10 ms），默认：0 |
+| `pinky_finger` | `int` | 小指：pos 模式范围 [0, 100]，time 模式范围 [0, 255]（单位：10 ms），默认：0 |
 
 **使用示例：**
 

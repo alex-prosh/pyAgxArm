@@ -1,12 +1,12 @@
 import threading
 from typing import Optional, TYPE_CHECKING, overload, List
 
-from typing_extensions import Literal, Final
+from typing_extensions import Literal
 from .arm_driver_interface import ArmDriverInterface
 from .driver_context import DriverContext
 from ...msgs.core import AttributeBase, MessageAbstract
 from .protocol_parser_interface import ProtocolParserInterface
-from .protocol_parser_abstract import DriverAPIOptions, DriverAPIProtoAdapter
+from .protocol_parser_abstract import DriverAPIOptions
 from ..core.arm_driver_context import ArmDriverContext
 from .....utiles.vaildator import Validator
 from .....utiles.tf import (

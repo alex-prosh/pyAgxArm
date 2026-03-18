@@ -6,6 +6,7 @@
 
 - [Switch to 中文](#nero-机械臂-api-使用文档)
 - [Import Module](#import-module)
+- [Firmware Version](#firmware-version)
 - [Create Instance and Connect](#create-instance-and-connect)
   - [Create Configuration — create_agx_arm_config()](#create-configuration--create_agx_arm_config)
   - [Create Arm Driver Instance — AgxArmFactory.create_arm()](#create-arm-driver-instance--agxarmfaborycreate_arm)
@@ -22,6 +23,7 @@
   - [Get Driver States — get_driver_states()](#get-driver-states--get_driver_states)
   - [Get Joint Enable Status — get_joint_enable_status()](#get-joint-enable-status--get_joint_enable_status)
   - [Get All Joint Enable Status List — get_joints_enable_status_list()](#get-all-joint-enable-status-list--get_joints_enable_status_list)
+  - [Get Firmware Info — get_firmware()](#get-firmware-info--get_firmware)
 - [Parameter Settings](#parameter-settings)
   - [Set Speed Percent — set_speed_percent()](#set-speed-percent--set_speed_percent)
   - [Set Motion Mode — set_motion_mode()](#set-motion-mode--set_motion_mode)
@@ -52,7 +54,48 @@
 ## Import Module
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+```
+
+---
+
+## Firmware Version
+
+Nero series firmware versioning is independent from the Piper series. The SDK uses the `firmeware_version` parameter in `create_agx_arm_config()` to select the matching driver. The firmware version number used here is the software version number, such as `"1.11"`.
+
+### Version List
+
+| SDK Version | Constant | Firmware Range | Key Differences |
+| --- | --- | --- | --- |
+| `"default"` | `NeroFW.DEFAULT` | ≤ 1.10 | MIT torque: joints 1-2 input range ±24 N·m, joints 3-4 range ±18 N·m, joints 5-7 range ±8 N·m; 8-bit encoding |
+| `"v111"` | `NeroFW.V111` | ≥ 1.11 | MIT torque: all joints range ±16 N·m; 12-bit encoding; CRC checksum removed; motion mode code changed |
+
+### How to Choose
+
+Check the firmware version on the arm's main controller, you can use the [get_firmware()](#get-firmware-info--get_firmware) method (format: **X.XX**), then pick the corresponding SDK version:
+
+| Your Firmware | `firmeware_version` to Use | Constant |
+| --- | --- | --- |
+| 1.10 or earlier | `"default"` (or omit the parameter) | `NeroFW.DEFAULT` |
+| 1.11 or later  | `"v111"` | `NeroFW.V111` |
+
+> **⚠️ Safety Warning:** Using the wrong firmware version may cause the SDK to send incorrectly encoded torque commands. In particular, sending v111 protocol data to an older firmware arm may result in **dangerous unexpected motion**. Always verify your firmware version before choosing the SDK version.
+
+**Usage Example (recommended — use constants for IDE auto-complete):**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+
+# Firmware is 1.10, use NeroFW.DEFAULT
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+```
+
+Raw strings are also accepted (backward-compatible):
+
+```python
+cfg = create_agx_arm_config(robot="nero", firmeware_version="default", channel="can0")
 ```
 
 ---
@@ -78,9 +121,9 @@ create_agx_arm_config(
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `robot` | `str` | Robotic arm model. Options: `"nero"` / `"piper"` / `"piper_h"` / `"piper_l"` / `"piper_x"` |
+| `robot` | `str` | Robotic arm model. Use `ArmModel` constants: `ArmModel.NERO` / `ArmModel.PIPER` / `ArmModel.PIPER_H` / `ArmModel.PIPER_L` / `ArmModel.PIPER_X` (raw strings also accepted) |
 | `comm` | `str` | Communication type. Options: `"can"` (default). Note: `comm` is not the CAN channel name; the CAN channel is specified by `channel` |
-| `firmeware_version` | `str` | Controller firmware version, default `"default"` |
+| `firmeware_version` | `str` | Main controller firmware version. Use per-robot constants: Nero series → `NeroFW.DEFAULT` / `NeroFW.V111`. See [Firmware Version](#firmware-version). Default `"default"` |
 
 **Optional Keyword Arguments (`**kwargs`):**
 
@@ -130,9 +173,9 @@ Example return structure:
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config
+from pyAgxArm import create_agx_arm_config, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 print(cfg)
 ```
 
@@ -159,9 +202,9 @@ create_arm(cls, config: dict, **kwargs) -> T
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 ```
 
@@ -186,9 +229,9 @@ connect(self, start_read_thread: bool = True) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 ```
@@ -218,9 +261,9 @@ init_effector(self, effector: str) -> EffectorDriver
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -247,9 +290,9 @@ joint_nums: int
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -311,9 +354,9 @@ get_arm_status(self) -> MessageAbstract[ArmMsgFeedbackStatus] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -345,9 +388,9 @@ get_joint_angles(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -384,9 +427,9 @@ get_flange_pose(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -430,9 +473,9 @@ get_motor_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbst
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -475,9 +518,9 @@ get_driver_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbs
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -511,9 +554,9 @@ get_joint_enable_status(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255]) ->
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -538,13 +581,54 @@ get_joints_enable_status_list(self) -> list[bool]
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
 print(robot.get_joints_enable_status_list())
+```
+
+---
+
+### Get Firmware Info — `get_firmware()`
+
+**Description:** Read the robotic arm firmware information (software version). This interface sends a query frame and waits for the corresponding feedback.
+
+**Function Definition:**
+
+```python
+get_firmware(self, timeout: float = 1.0, min_interval: float = 1.0) -> dict | None
+```
+
+**Parameters:**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `timeout` | `float` | Timeout for waiting for feedback (seconds), default `1.0`; `0.0` means non-blocking |
+| `min_interval` | `float` | Minimum request interval (seconds), default `1.0` |
+
+**Return Value:** `dict | None`
+
+Common fields:
+
+| Key | Type | Description |
+| --- | --- | --- |
+| `software_version` | `str` | Software version (e.g., `1.10`) |
+
+**Usage Example:**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+fw = robot.get_firmware()
+if fw is not None:
+    print(fw)
 ```
 
 ---
@@ -570,9 +654,9 @@ set_speed_percent(self, percent: int = 100) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -607,9 +691,9 @@ set_motion_mode(self, motion_mode: Literal["p", "j", "l", "c", "mit", "js"] = "p
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -641,9 +725,9 @@ set_tcp_offset(self, pose: list[float]) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -670,9 +754,9 @@ get_tcp_pose(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -709,9 +793,9 @@ get_flange2tcp_pose(self, flange_pose: list[float]) -> list[float]
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -751,9 +835,9 @@ get_tcp2flange_pose(self, tcp_pose: list[float]) -> list[float]
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -783,9 +867,9 @@ set_normal_mode(self) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -809,9 +893,9 @@ set_leader_mode(self) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -833,9 +917,9 @@ set_follower_mode(self) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -862,9 +946,9 @@ get_leader_joint_angles(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -904,9 +988,9 @@ enable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -940,9 +1024,9 @@ disable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -967,9 +1051,9 @@ reset(self) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -991,9 +1075,9 @@ electronic_emergency_stop(self) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1024,9 +1108,9 @@ move_j(self, joints: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1079,9 +1163,9 @@ move_js(self, joints: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1115,9 +1199,9 @@ move_p(self, pose: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1165,9 +1249,9 @@ move_l(self, pose: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1215,9 +1299,9 @@ move_c(self, start_pose: list[float], mid_pose: list[float], end_pose: list[floa
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1289,17 +1373,27 @@ move_mit(
 | `v_des` | `float` | `[-45.0, 45.0]` | rad/s | `0.0` | 2.198e-2 |
 | `kp` | `float` | `[0.0, 500.0]` | — | `10.0` | 1.221e-1 |
 | `kd` | `float` | `[-5.0, 5.0]` | — | `0.8` | 2.442e-3 |
-| `t_ff` | `float` | `[-8.0, 8.0]` | N·m | `0.0` | 6.275e-2 |
+
+**`t_ff` parameter differs by firmware version:**
+
+| Version | Joint | `t_ff` Range (N·m) | Encoding Bits | Precision (N·m) |
+| --- | --- | --- | --- | --- |
+| `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
+| `default`（≤ v110） | 4-6 | `[-18.0, 18.0]` | 8 | 1.412e-1 |
+| `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
+| `v111`（≥ v111） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
 
 > **Note:** Consecutive execution of this command will overwrite the previous target value.
+>
+> The correct firmware version must be set via `create_agx_arm_config(firmeware_version=...)`. See [Firmware Version](#firmware-version) for details.
 
 **Usage Example:**
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1327,6 +1421,7 @@ for i in range(1, robot.joint_nums + 1):
 
 - [切换到 English](#nero-api-documentation)
 - [导入模块](#导入模块)
+- [固件版本选择](#固件版本选择)
 - [创建实例并连接](#创建实例并连接)
   - [创建配置参数 — create_agx_arm_config()](#创建配置参数--create_agx_arm_config)
   - [创建机械臂 Driver 实例 — AgxArmFactory.create_arm()](#创建机械臂-driver-实例--agxarmfaborycreate_arm)
@@ -1343,6 +1438,7 @@ for i in range(1, robot.joint_nums + 1):
   - [读取驱动器状态 — get_driver_states()](#读取驱动器状态--get_driver_states)
   - [读取关节使能状态 — get_joint_enable_status()](#读取关节使能状态--get_joint_enable_status)
   - [读取全部关节使能状态 — get_joints_enable_status_list()](#读取全部关节使能状态--get_joints_enable_status_list)
+  - [读取固件信息 — get_firmware()](#读取固件信息--get_firmware)
 - [参数设定](#参数设定)
   - [设定运行速度 — set_speed_percent()](#设定运行速度--set_speed_percent)
   - [设定运动模式 — set_motion_mode()](#设定运动模式--set_motion_mode)
@@ -1373,7 +1469,48 @@ for i in range(1, robot.joint_nums + 1):
 ## 导入模块
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+```
+
+---
+
+## 固件版本选择
+
+Nero 系列的固件版本体系与 Piper 系列相互独立。SDK 通过 `create_agx_arm_config()` 的 `firmeware_version` 参数选择匹配的驱动，这里的固件版本采用的是软件的版本号，例如 `"1.10"`。
+
+### 版本列表
+
+| SDK 版本 | 常量 | 固件范围 | 主要差异 |
+| --- | --- | --- | --- |
+| `"default"` | `NeroFW.DEFAULT` | ≤ 1.10 | MIT 力矩：关节 1-2 输入范围 ±24 N·m，关节 3-4 范围 ±18 N·m，关节 5-7 范围 ±8 N·m；8-bit 编码 |
+| `"v111"` | `NeroFW.V111` | ≥ 1.11 | MIT 力矩：全关节范围 ±16 N·m；12-bit 编码；去除 CRC 校验位；motion mode 编码变更 |
+
+### 如何选择
+
+查看机械臂主控上的固件版本号，可通过[get_firmware()](#读取固件信息--get_firmware)方法获取（格式：**X.XX**），根据下表选择对应的 SDK 版本：
+
+| 您的固件版本 | 应填写的 `firmeware_version` | 常量 |
+| --- | --- | --- |
+| 1.10 及更早 | `"default"`（或不填，默认值） | `NeroFW.DEFAULT` |
+| 1.11 及更新 | `"v111"` | `NeroFW.V111` |
+
+> **⚠️ 安全警告：** 选错固件版本可能导致 SDK 发送编码错误的力矩指令。特别是将 v111 协议数据发送给旧固件机械臂，可能造成 **危险的非预期运动**。使用前请务必确认您的固件版本。
+
+**使用示例（推荐 — 使用常量类获得 IDE 自动补全）：**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+
+# 固件为 1.10，选择 NeroFW.DEFAULT
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+```
+
+也兼容原始字符串写法：
+
+```python
+cfg = create_agx_arm_config(robot="nero", firmeware_version="default", channel="can0")
 ```
 
 ---
@@ -1399,9 +1536,9 @@ create_agx_arm_config(
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `robot` | `str` | 机械臂型号，可选值：`"nero"` / `"piper"` / `"piper_h"` / `"piper_l"` / `"piper_x"` |
+| `robot` | `str` | 机械臂型号。推荐使用 `ArmModel` 常量：`ArmModel.NERO` / `ArmModel.PIPER` / `ArmModel.PIPER_H` / `ArmModel.PIPER_L` / `ArmModel.PIPER_X`（也兼容原始字符串） |
 | `comm` | `str` | 通讯类型，可选值：`"can"`（默认）。注意：`comm` 不是 CAN 通道名，CAN 通道由 `channel` 指定 |
-| `firmeware_version` | `str` | 主控固件版本，默认 `"default"` |
+| `firmeware_version` | `str` | 主控固件版本。推荐使用按机型分类的常量：Nero 系列 → `NeroFW.DEFAULT` / `NeroFW.V111`。选择方法见[固件版本选择](#固件版本选择)。默认 `"default"` |
 
 **可选关键字参数（`**kwargs`）：**
 
@@ -1451,9 +1588,9 @@ create_agx_arm_config(
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config
+from pyAgxArm import create_agx_arm_config, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 print(cfg)
 ```
 
@@ -1480,9 +1617,9 @@ create_arm(cls, config: dict, **kwargs) -> T
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 ```
 
@@ -1507,9 +1644,9 @@ connect(self, start_read_thread: bool = True) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 ```
@@ -1539,9 +1676,9 @@ init_effector(self, effector: str) -> EffectorDriver
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1568,9 +1705,9 @@ joint_nums: int
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1632,9 +1769,9 @@ get_arm_status(self) -> MessageAbstract[ArmMsgFeedbackStatus] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1666,9 +1803,9 @@ get_joint_angles(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1705,9 +1842,9 @@ get_flange_pose(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1751,9 +1888,9 @@ get_motor_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbst
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1796,9 +1933,9 @@ get_driver_states(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7]) -> MessageAbs
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1832,9 +1969,9 @@ get_joint_enable_status(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255]) ->
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1859,13 +1996,54 @@ get_joints_enable_status_list(self) -> list[bool]
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
 print(robot.get_joints_enable_status_list())
+```
+
+---
+
+### 读取固件信息 — `get_firmware()`
+
+**功能说明：** 读取机械臂固件信息（软件版本）。该接口会下发查询帧并等待对应反馈。
+
+**函数定义：**
+
+```python
+get_firmware(self, timeout: float = 1.0, min_interval: float = 1.0) -> dict | None
+```
+
+**参数说明：**
+
+| 名称 | 类型 | 说明 |
+| --- | --- | --- |
+| `timeout` | `float` | 等待反馈超时时间（秒），默认 `1.0`；`0.0` 表示非阻塞 |
+| `min_interval` | `float` | 最小请求间隔（秒），默认 `1.0` |
+
+**返回值：** `dict | None`
+
+常见字段：
+
+| Key | 类型 | 说明 |
+| --- | --- | --- |
+| `software_version` | `str` | 软件版本（例如 `1.10`） |
+
+**使用示例：**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+fw = robot.get_firmware()
+if fw is not None:
+    print(fw)
 ```
 
 ---
@@ -1891,9 +2069,9 @@ set_speed_percent(self, percent: int = 100) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1928,9 +2106,9 @@ set_motion_mode(self, motion_mode: Literal["p", "j", "l", "c", "mit", "js"] = "p
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1962,9 +2140,9 @@ set_tcp_offset(self, pose: list[float]) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -1991,9 +2169,9 @@ get_tcp_pose(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2030,9 +2208,9 @@ get_flange2tcp_pose(self, flange_pose: list[float]) -> list[float]
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2072,9 +2250,9 @@ get_tcp2flange_pose(self, tcp_pose: list[float]) -> list[float]
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2104,9 +2282,9 @@ set_normal_mode(self) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2130,9 +2308,9 @@ set_leader_mode(self) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2154,9 +2332,9 @@ set_follower_mode(self) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2183,9 +2361,9 @@ get_leader_joint_angles(self) -> MessageAbstract[list[float]] | None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2225,9 +2403,9 @@ enable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2261,9 +2439,9 @@ disable(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2288,9 +2466,9 @@ reset(self) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2312,9 +2490,9 @@ electronic_emergency_stop(self) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2345,9 +2523,9 @@ move_j(self, joints: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2400,9 +2578,9 @@ move_js(self, joints: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2436,9 +2614,9 @@ move_p(self, pose: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2486,9 +2664,9 @@ move_l(self, pose: list[float]) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2536,9 +2714,9 @@ move_c(self, start_pose: list[float], mid_pose: list[float], end_pose: list[floa
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2610,17 +2788,27 @@ move_mit(
 | `v_des` | `float` | `[-45.0, 45.0]` | rad/s | `0.0` | 2.198e-2 |
 | `kp` | `float` | `[0.0, 500.0]` | — | `10.0` | 1.221e-1 |
 | `kd` | `float` | `[-5.0, 5.0]` | — | `0.8` | 2.442e-3 |
-| `t_ff` | `float` | `[-8.0, 8.0]` | N·m | `0.0` | 6.275e-2 |
+
+**`t_ff` 参数因固件版本而异：**
+
+| 版本 | 关节 | `t_ff` 范围 (N·m) | 编码位数 | 精度 (N·m) |
+| --- | --- | --- | --- | --- |
+| `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
+| `default`（≤ v110） | 4-6 | `[-18.0, 18.0]` | 8 | 1.412e-1 |
+| `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
+| `v111`（≥ v111） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
 
 > **注意：** 连续执行该指令会覆盖上一次的目标值。
+>
+> 必须通过 `create_agx_arm_config(firmeware_version=...)` 正确设置固件版本。详见[固件版本选择](#固件版本选择)。
 
 **使用示例：**
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 

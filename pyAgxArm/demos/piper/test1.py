@@ -1,5 +1,5 @@
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
 
 def wait_motion_done(robot, timeout: float = 5.0, poll_interval: float = 0.1) -> bool:
@@ -17,7 +17,7 @@ def wait_motion_done(robot, timeout: float = 5.0, poll_interval: float = 0.1) ->
         time.sleep(poll_interval)
 
 
-robot_cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0", interface="socketcan")
+robot_cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 print(robot_cfg)
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()

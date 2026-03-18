@@ -21,6 +21,7 @@ from ....msgs.nero.default import (
     ArmMsgMotionCtrl,
     ArmMsgLeaderFollowerModeConfig,
     ArmMsgFeedbackLeaderJointStates,
+    ArmMsgReqFirmware,
 )
 
 
@@ -517,6 +518,67 @@ class Driver(ArmDriverAbstract):
         """
         return [self.get_joint_enable_status(i)
                 for i in self._JOINT_INDEX_LIST[:-1]]
+    
+    def get_firmware(self, timeout: float = 1.0, min_interval: float = 1.0):
+        """Get the firmware information of the arm.
+
+        Parameters
+        ----------
+        `timeout`: float, optional
+        - Timeout in seconds (see `Driver` docstring: Common conventions ->
+          `timeout`).
+        - Default is 1.0.
+
+        `min_interval`: float, optional
+        - Minimum interval in seconds between two consecutive requests.
+        - Default is 1.0.
+
+        Returns
+        -------
+        dict | None
+            The firmware information of the arm.
+            If the firmware information is not available, return None.
+
+        Dict keys
+        ---------
+        `software_version`: Software version (e.g. 1.07)
+
+        Examples
+        --------
+        >>> firmware = robot.get_firmware()
+        >>> if firmware is not None:
+        >>>     print(
+        ...         firmware["software_version"],
+        ...     )
+        >>> # Non-blocking: call with `timeout=0.0` (see `Driver` conventions).
+        """
+        def request() -> None:
+            self._send_msg(ArmMsgReqFirmware())
+
+        def is_ready() -> bool:            
+            return (
+                getattr(self._parser, "firmware_info", None) is not None
+                and len(self._parser.firmware_info.msg.data_seg) == 8
+            )
+
+        def get_value() -> dict:
+            data = self._parser.firmware_info.msg.data_seg
+            return {
+                "software_version" : f"{int(data[6])}.{int(data[7]):02d}"
+                }
+
+        def clear() -> None:
+            self._parser.firmware_info.msg.clear()
+
+        return self._ctx._request_and_get(
+            request=request,
+            is_ready=is_ready,
+            get_value=get_value,
+            clear=clear,
+            timeout=timeout,
+            min_interval=min_interval,
+            stamp_attr="firmware_info",
+        )
 
     # -------------------------- Enable/Disable --------------------------
 
@@ -907,9 +969,13 @@ class Driver(ArmDriverAbstract):
             (Numerical precision: 2.442002442002442e-3)
 
         `t_ff`: float, optional
-        - Feed-forward torque reference (unit: N·m). Range: [-8.0, 8.0].
-          Default is
-            0.0. (Numerical precision: 6.274509803921569e-2 N·m)
+        - Feed-forward torque reference (unit: N·m). Default is 0.0.
+          Joint 1-2: Range [-24.0, 24.0].
+            (Numerical precision: 1.8823529411764706e-1 N·m)
+          Joint 3-4: Range [-18.0, 18.0].
+            (Numerical precision: 1.411764705882353e-1 N·m)
+          Joint 5-7: Range [-8.0, 8.0].
+            (Numerical precision: 6.274509803921569e-2 N·m)
 
         Raises
         ------
@@ -986,18 +1052,33 @@ class Driver(ArmDriverAbstract):
             )
             kd = Validator.clamp(kd, -5.0, 5.0)
         
-        if not Validator.is_within_limit(t_ff, -8.0, 8.0):
+        if joint_index in (1, 2):
+            t_ff_min = -24.0
+            t_ff_max = 24.0
+        elif joint_index in (3, 4):
+            t_ff_min = -18.0
+            t_ff_max = 18.0
+        else:
+            t_ff_min = -8.0
+            t_ff_max = 8.0
+
+        if not Validator.is_within_limit(t_ff, t_ff_min, t_ff_max):
             print(
                 f"Warning: Feed-forward torque {t_ff} N·m is outside "
-                f"joint {joint_index} limits [-8.0, 8.0]. "
+                f"joint {joint_index} limits [{t_ff_min}, {t_ff_max}]. "
             )
-            t_ff = Validator.clamp(t_ff, -8.0, 8.0)
+            t_ff = Validator.clamp(t_ff, t_ff_min, t_ff_max)
+        
+        if joint_index in (1, 2):
+            t_ff *= 0.75
+        elif joint_index in (5, 6, 7):
+            t_ff *= 2.25
 
         p_des = nc.FloatToUint(p_des, -12.5, 12.5, 16)
         v_des = nc.FloatToUint(v_des, -45.0, 45.0, 12)
         kp = nc.FloatToUint(kp, 0.0, 500.0, 12)
         kd = nc.FloatToUint(kd, -5.0, 5.0, 12)
-        t_ff = nc.FloatToUint(t_ff, -8.0, 8.0, 8)
+        t_ff = nc.FloatToUint(t_ff, -18.0, 18.0, 8)
 
         msg = self._parser._make_joint_mit_ctrl_msg(
             joint_index=joint_index,

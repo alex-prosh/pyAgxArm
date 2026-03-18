@@ -1,5 +1,5 @@
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
 
 def wait_motion_done(robot, timeout: float = 5.0, poll_interval: float = 0.1) -> bool:
@@ -17,7 +17,7 @@ def wait_motion_done(robot, timeout: float = 5.0, poll_interval: float = 0.1) ->
         time.sleep(poll_interval)
 
 
-robot_cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0", interface="socketcan")
+robot_cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0", local_loopback=True)
 print(robot_cfg)
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
@@ -58,7 +58,7 @@ print(end_effector.__doc__)
 # robot.move_c(start_pose, mid_pose, end_pose)
 # wait_motion_done(robot, timeout=5.0)
 
-# robot.move_j([0.01] * 7)
+# robot.move_j([0.0] * 7)
 # wait_motion_done(robot, timeout=5.0)
 
 
@@ -102,6 +102,7 @@ while True:
     t = time.time()
 
     # print(robot.get_arm_status())
+    # print(robot.get_firmware())
 
     # print(robot.get_joint_angles())
     # print(robot.get_flange_pose())
@@ -121,6 +122,24 @@ while True:
     print()
 
     time.sleep(0.005)
+
+
+# -------------------------- Motor torque measurements -------
+
+# robot.move_mit(1, 0.0, v_des=0.0, kp=0, kd=0, t_ff=0.8)
+
+# import numpy as np
+
+# data = []
+
+# while True:
+#     data.append(robot.get_motor_states(1).msg.torque)
+#     time.sleep(0.02)
+#     if len(data) > 100:
+#         break
+
+# data = np.mean(data)
+# print(data)
 
 
 # -------------------------- Leader-Follower --------------------------

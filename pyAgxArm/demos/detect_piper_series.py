@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 exit_flag = False
 
-robot_cfg = create_agx_arm_config(robot=args.robot, comm="can", channel=args.can_port, interface="socketcan")
+robot_cfg = create_agx_arm_config(robot=args.robot, channel=args.can_port)
 robot: Driver = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
 

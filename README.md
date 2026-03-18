@@ -62,9 +62,10 @@ See:
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+# If Nero's software version is <= 1.10, select NeroFW.DEFAULT; if it is >= 1.11, select NeroFW.V111.
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -152,9 +153,10 @@ Ubuntu 24.04 可参考：
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0")
+# Nero的软件版本 <= 1.10，选择 NeroFW.DEFAULT；>= 1.11，选择 NeroFW.V111
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 

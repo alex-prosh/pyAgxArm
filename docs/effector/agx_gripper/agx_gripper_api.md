@@ -48,9 +48,9 @@ create_arm(cls, config: dict, **kwargs) -> T
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW, ArmMo
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 ```
 
@@ -92,9 +92,9 @@ class EFFECTOR:
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 ```
@@ -125,9 +125,9 @@ connect(self, start_read_thread: bool = True) -> None
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -157,9 +157,9 @@ is_ok(self) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -186,9 +186,9 @@ get_fps(self) -> float
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -255,9 +255,9 @@ get_gripper_status(self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -301,9 +301,9 @@ get_gripper_ctrl_states(self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -349,9 +349,9 @@ get_gripper_teaching_pendant_param(
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -397,9 +397,9 @@ move_gripper(self, width: float = 0.0, force: float = 1.0) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -436,9 +436,9 @@ disable_gripper(self) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -471,9 +471,9 @@ calibrate_gripper(self, timeout: float = 1.0) -> bool
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -523,9 +523,9 @@ set_gripper_teaching_pendant_param(
 **Usage Example:**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -591,9 +591,9 @@ create_arm(cls, config: dict, **kwargs) -> T
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 ```
 
@@ -635,9 +635,9 @@ class EFFECTOR:
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 ```
@@ -668,9 +668,9 @@ connect(self, start_read_thread: bool = True) -> None
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -700,9 +700,9 @@ is_ok(self) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -729,9 +729,9 @@ get_fps(self) -> float
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -798,9 +798,9 @@ get_gripper_status(self) -> Optional[MessageAbstract[ArmMsgFeedbackGripper]]
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -844,9 +844,9 @@ get_gripper_ctrl_states(self) -> Optional[MessageAbstract[ArmMsgGripperCtrl]]
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -892,9 +892,9 @@ get_gripper_teaching_pendant_param(
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -940,9 +940,9 @@ move_gripper(self, width: float = 0.0, force: float = 1.0) -> None
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -979,9 +979,9 @@ disable_gripper(self) -> bool
 
 ```python
 import time
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -1014,9 +1014,9 @@ calibrate_gripper(self, timeout: float = 1.0) -> bool
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()
@@ -1066,9 +1066,9 @@ set_gripper_teaching_pendant_param(
 **使用示例：**
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 robot.connect()

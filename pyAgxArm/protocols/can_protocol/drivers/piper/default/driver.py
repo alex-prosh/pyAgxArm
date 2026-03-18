@@ -1157,9 +1157,11 @@ class Driver(ArmDriverAbstract):
             (Numerical precision: 2.442002442002442e-3)
 
         `t_ff`: float, optional
-        - Feed-forward torque reference (unit: N·m). Range: [-8.0, 8.0].
-          Default is
-            0.0. (Numerical precision: 6.274509803921569e-2 N·m)
+        - Feed-forward torque reference (unit: N·m). Default is 0.0.
+          Joint 1-3: Range [-32.0, 32.0].
+            (Numerical precision: 2.509803921568627e-1 N·m)
+          Joint 4-6: Range [-8.0, 8.0].
+            (Numerical precision: 6.274509803921569e-2 N·m)
 
         Raises
         ------
@@ -1235,13 +1237,23 @@ class Driver(ArmDriverAbstract):
                 f"joint {joint_index} limits [-5.0, 5.0]. "
             )
             kd = Validator.clamp(kd, -5.0, 5.0)
-        
-        if not Validator.is_within_limit(t_ff, -8.0, 8.0):
+
+        if joint_index in (1, 2, 3):
+            t_ff_min = -32.0
+            t_ff_max = 32.0
+        else:
+            t_ff_min = -8.0
+            t_ff_max = 8.0
+
+        if not Validator.is_within_limit(t_ff, t_ff_min, t_ff_max):
             print(
                 f"Warning: Feed-forward torque {t_ff} N·m is outside "
-                f"joint {joint_index} limits [-8.0, 8.0]. "
+                f"joint {joint_index} limits [{t_ff_min}, {t_ff_max}]. "
             )
-            t_ff = Validator.clamp(t_ff, -8.0, 8.0)
+            t_ff = Validator.clamp(t_ff, t_ff_min, t_ff_max)
+        
+        if joint_index in (1, 2, 3):
+            t_ff *= 0.25
 
         p_des = nc.FloatToUint(p_des, -12.5, 12.5, 16)
         v_des = nc.FloatToUint(v_des, -45.0, 45.0, 12)

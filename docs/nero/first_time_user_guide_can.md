@@ -42,8 +42,8 @@
 4. Wait for green indicator, then call `set_normal_mode()` in `pyAgxArm`:
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
-robot_cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0", interface="socketcan")
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+robot_cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
 robot.set_normal_mode()
@@ -67,12 +67,12 @@ Example of normal `candump can0` data stream:
 Sample code for reading joint angles after CAN setup:
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 import time
-robot_cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0", interface="socketcan")
+robot_cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
-#robot.set_normal_mode()
+# robot.set_normal_mode()
 time.sleep(1)
 while True:
     print(robot.get_joint_angles())
@@ -145,8 +145,8 @@ while True:
 4. 观察机械臂指示灯，待机械臂指示灯绿色后，在 PC 上编写代码，调用 `pyAgxArm` 的 `set_normal_mode()` 函数
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
-robot_cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0", interface="socketcan")
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+robot_cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
 robot.set_normal_mode()
@@ -170,12 +170,12 @@ robot.set_normal_mode()
 附上一段开启 CAN 模式后，读取关节数据的代码，注意这里将 `robot.set_normal_mode()` 注释掉了，可以按需开启。
 
 ```python
-from pyAgxArm import create_agx_arm_config, AgxArmFactory
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 import time
-robot_cfg = create_agx_arm_config(robot="nero", comm="can", channel="can0", interface="socketcan")
+robot_cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
-#robot.set_normal_mode()
+# robot.set_normal_mode()
 time.sleep(1)
 while True:
     print(robot.get_joint_angles())

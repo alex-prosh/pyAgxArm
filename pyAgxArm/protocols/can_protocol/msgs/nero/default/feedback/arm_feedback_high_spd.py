@@ -20,7 +20,7 @@ class ArmMsgFeedbackHighSpd(ArmMsgFeedbackHighSpdBase):
         velocity: 电机当前转速
         current: 电机当前电流
         position: 电机当前位置
-        effort: 经过固定系数转换的力矩,单位0.001N/m
+        torque: 经过固定系数转换的力矩,单位0.001N/m
     
     位描述:
 
@@ -48,7 +48,7 @@ class ArmMsgFeedbackHighSpd(ArmMsgFeedbackHighSpdBase):
         velocity: Motor Speed.
         current: Motor Current.
         position: Motor Position.
-        effort: Torque converted using a fixed coefficient, with a unit of 0.001 N/m.
+        torque: Torque converted using a fixed coefficient, with a unit of 0.001 N/m.
 
     
     Bit Description:
@@ -62,8 +62,23 @@ class ArmMsgFeedbackHighSpd(ArmMsgFeedbackHighSpdBase):
         Byte 6: Motor Position (Second Least Significant Byte)
         Byte 7: Motor Position (Least Significant Byte)
     '''
-    _VALID_CAN_ID_1 = [0x251, 0x252, 0x253, 0x254, 0x255, 0x256, 0x257]
-    _VALID_CAN_ID_2 = []
+    _COEFFICIENT_1 = 1.18125 * 4.28
+    _COEFFICIENT_2 = 1.18125 * 4.25
+    _COEFFICIENT_3 = 1.18125 * 2.25
+    _VALID_CAN_ID_1 = [0x251, 0x252]
+    _VALID_CAN_ID_2 = [0x253, 0x254]
+    _VALID_CAN_ID_3 = [0x255, 0x256, 0x257]
+
+    @property
+    def torque(self) -> float:
+        if(self._VALID_CAN_ID in self._VALID_CAN_ID_1):
+            return self.current * self._COEFFICIENT_1
+        elif(self._VALID_CAN_ID in self._VALID_CAN_ID_2):
+            return self.current * self._COEFFICIENT_2
+        elif(self._VALID_CAN_ID in self._VALID_CAN_ID_3):
+            return self.current * self._COEFFICIENT_3
+        else:
+            return 0.0
 
 class ArmMsgFeedbackHighSpd1(ArmMsgFeedbackHighSpd):
     '''CAN ID:

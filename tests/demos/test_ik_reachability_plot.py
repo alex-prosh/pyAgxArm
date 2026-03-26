@@ -50,3 +50,47 @@ def test_grid_untested_cells_are_nan():
     assert np.isnan(arr[0, 1])
     assert np.isnan(arr[1, 0])
     assert np.isnan(arr[1, 1])
+
+
+import matplotlib
+matplotlib.use('Agg')   # non-interactive backend for tests
+import matplotlib.pyplot as plt
+import importlib.util, pathlib
+
+# Load generate_plot without executing robot code
+# We test by calling generate_plot with synthetic results
+def _load_generate_plot():
+    """Parse generate_plot out of the main script without running robot setup."""
+    src = pathlib.Path("pyAgxArm/demos/piper/ik_reachability_map.py").read_text()
+    # Extract only up to the robot setup line
+    cutoff = src.find("robot_cfg = create_agx_arm_config")
+    trimmed = src[:cutoff]
+    ns = {}
+    exec(trimmed, ns)
+    return ns["generate_plot"]
+
+
+def _synthetic_results():
+    xs = np.round(np.arange(0.10, 0.21, 0.05), 4)
+    ys = np.round(np.arange(-0.05, 0.06, 0.05), 4)
+    zs = np.round(np.arange(0.20, 0.31, 0.05), 4)
+    results = []
+    for x in xs:
+        for y in ys:
+            for z in zs:
+                reachable = (x <= 0.15 and abs(y) <= 0.05 and z <= 0.25)
+                results.append((x, y, z, x, y, z, 0.0, reachable))
+    return results, xs, ys, zs
+
+
+def test_generate_plot_runs_without_error():
+    generate_plot = _load_generate_plot()
+    results, xs, ys, zs = _synthetic_results()
+    generate_plot(results, xs, ys, zs)
+    plt.close('all')
+
+
+def test_generate_plot_empty_results():
+    generate_plot = _load_generate_plot()
+    generate_plot([], np.array([0.1]), np.array([0.0]), np.array([0.2]))
+    plt.close('all')

@@ -92,3 +92,50 @@ wait_motion_done(robot)
 time.sleep(0.3)
 print(f"Grid: {len(xs)}×{len(ys)}×{len(zs)} = {len(xs)*len(ys)*len(zs)} points")
 print(f"Logging to {LOG_FILE}")
+
+# ---------------------------------------------------------------------------
+# Sweep
+# ---------------------------------------------------------------------------
+csv_f = open(LOG_FILE, "w")
+csv_f.write("x,y,z,actual_x,actual_y,actual_z,error_m,reachable\n")
+csv_f.flush()
+
+results = []   # list of (x, y, z, ax, ay, az, error, reachable)
+total = len(xs) * len(ys) * len(zs)
+count = 0
+
+try:
+    for x in xs:
+        for y in ys:
+            for z in zs:
+                count += 1
+                print(f"[{count}/{total}] X={x:.2f} Y={y:.2f} Z={z:.2f} ... ",
+                      end="", flush=True)
+                robot.move_p([x, y, z, ROLL, PITCH, YAW])
+                reached = wait_motion_done(robot)
+
+                pose = robot.get_flange_pose()
+                if pose is None or not reached:
+                    ax, ay, az = float("nan"), float("nan"), float("nan")
+                    error = float("inf")
+                    reachable = False
+                else:
+                    ax, ay, az = pose.msg[0], pose.msg[1], pose.msg[2]
+                    error = math.sqrt((ax - x) ** 2 + (ay - y) ** 2 + (az - z) ** 2)
+                    reachable = error < TOL
+
+                tag = "OK  " if reachable else "MISS"
+                print(f"err={error * 1000:6.1f}mm [{tag}]")
+
+                row = (x, y, z, ax, ay, az, error, reachable)
+                results.append(row)
+                csv_f.write(
+                    f"{x},{y},{z},{ax},{ay},{az},{error},{reachable}\n"
+                )
+                csv_f.flush()
+
+except KeyboardInterrupt:
+    print("\nInterrupted.")
+
+finally:
+    csv_f.close()

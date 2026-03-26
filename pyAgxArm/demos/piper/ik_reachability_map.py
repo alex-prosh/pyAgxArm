@@ -44,3 +44,51 @@ HOME_JOINTS = [
 xs = np.round(np.arange(X_MIN, X_MAX + X_STEP / 2, X_STEP), 4)
 ys = np.round(np.arange(Y_MIN, Y_MAX + Y_STEP / 2, Y_STEP), 4)
 zs = np.round(np.arange(Z_MIN, Z_MAX + Z_STEP / 2, Z_STEP), 4)
+
+# ---------------------------------------------------------------------------
+# Motion helpers
+# ---------------------------------------------------------------------------
+
+def wait_motion_done(robot, timeout: float = 20.0, poll_interval: float = 0.1) -> bool:
+    """Two-phase wait: first for motion to start, then for it to finish."""
+    # Phase 1: wait for motion to start (status goes non-zero)
+    time.sleep(0.3)
+    for _ in range(30):
+        s = robot.get_arm_status()
+        if s and getattr(s.msg, "motion_status", 0) != 0:
+            break
+        time.sleep(0.05)
+    # Phase 2: wait for motion to finish (status returns to zero)
+    start_t = time.monotonic()
+    while True:
+        status = robot.get_arm_status()
+        if status is not None and getattr(status.msg, "motion_status", None) == 0:
+            return True
+        if time.monotonic() - start_t > timeout:
+            print(f"  timeout ({timeout:.0f}s)")
+            return False
+        time.sleep(poll_interval)
+
+
+# ---------------------------------------------------------------------------
+# Robot setup
+# ---------------------------------------------------------------------------
+robot_cfg = create_agx_arm_config(
+    robot="piper", comm="can", channel="PCAN_USBBUS1", interface="pcan"
+)
+robot = AgxArmFactory.create_arm(robot_cfg)
+robot.connect()
+robot.set_follower_mode()
+time.sleep(0.1)
+
+while not robot.enable():
+    time.sleep(0.01)
+robot.set_speed_percent(SPEED)
+
+# Pre-position: arm upright, J6=π — prevents surprise wrist spin on first move_p
+print("Pre-positioning arm...")
+robot.move_j(PRE_SWEEP_JOINTS)
+wait_motion_done(robot)
+time.sleep(0.3)
+print(f"Grid: {len(xs)}×{len(ys)}×{len(zs)} = {len(xs)*len(ys)*len(zs)} points")
+print(f"Logging to {LOG_FILE}")

@@ -139,3 +139,18 @@ except KeyboardInterrupt:
 
 finally:
     csv_f.close()
+
+# ---------------------------------------------------------------------------
+# Return to home & disable
+# ---------------------------------------------------------------------------
+print("\nReturning to home...")
+robot.move_j(HOME_JOINTS)
+wait_motion_done(robot)
+
+while not robot.disable():
+    time.sleep(0.01)
+print("Arm disabled.")
+
+n_reach = sum(1 for r in results if r[7])
+print(f"\nSummary: {n_reach}/{len(results)} points reachable")
+print(f"Logged to {LOG_FILE}")

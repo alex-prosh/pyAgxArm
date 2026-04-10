@@ -20,10 +20,10 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory
 # ---------------------------------------------------------------------------
 # Configuration — edit these before each run
 # ---------------------------------------------------------------------------
-X_MIN, X_MAX, X_STEP = 0.05, 0.35, 0.05   # meters
+X_MIN, X_MAX, X_STEP = 0.10, 0.35, 0.05   # meters
 Y_MIN, Y_MAX, Y_STEP = -0.25, 0.25, 0.05
-Z_MIN, Z_MAX, Z_STEP = 0.20, 0.40, 0.05
-ROLL, PITCH, YAW     = math.pi, 0.0, 0.0  # flange pointing down
+Z_MIN, Z_MAX, Z_STEP = 0.15, 0.40, 0.05
+ROLL, PITCH, YAW     = math.pi, 0.0, math.pi  # flange pointing down, yaw=π
 TOL      = 0.03   # metres — counts as "reached"
 SPEED    = 15     # % speed
 LOG_FILE = "reachability.csv"

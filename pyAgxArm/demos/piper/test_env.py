@@ -75,7 +75,8 @@ if __name__ == "__main__":
     parser.add_argument("--speed", type=int, default=25, help="Arm speed percent 0-100")
     parser.add_argument("--scale", type=float, default=0.1,
                         help="Scale random actions by this factor (0.1 = small motions)")
-    parser.add_argument("--channel", type=str, default="can0", help="CAN channel")
+    parser.add_argument("--channel", type=str, default="PCAN_USBBUS1", help="CAN channel")
+    parser.add_argument("--interface", type=str, default="pcan", help="CAN interface type")
     parser.add_argument("--action-mode", type=str, default="cartesian",
                         choices=["cartesian", "joint"], help="Action mode")
     parser.add_argument("--max-delta", type=float, default=None,
@@ -100,6 +101,7 @@ if __name__ == "__main__":
     env_kwargs = dict(
         speed_percent=args.speed,
         channel=args.channel,
+        interface=args.interface,
         action_mode=args.action_mode,
         max_delta=args.max_delta,
         step_dt=step_dt,

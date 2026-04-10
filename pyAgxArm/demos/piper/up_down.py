@@ -1,31 +1,35 @@
-"""Piper arm oscillation demo.
+"""Piper arm up-down oscillation demo.
 
-Oscillates the arm between two poses using the exact move_j pattern
-from the official API docs.
+Moves the arm between a raised pose and home using move_j.
 
 Usage:
-    1. Activate CAN: bash pyAgxArm/scripts/can_activate.sh can0
-    2. Run: python pyAgxArm/demos/piper/wrist_oscillation.py
-    3. Ctrl+C to stop — the arm will disable gracefully.
+    1. Run: python pyAgxArm/demos/piper/up_down.py
+    2. Ctrl+C to stop — the arm will disable gracefully.
 """
 
+import math
 import threading
 import time
+
 from pyAgxArm import create_agx_arm_config, AgxArmFactory
 
-import math
-
-# J6 rotation only — other joints stay at home
-_HOME_J = [0.0, 0.0, 0.0, 0.001, 0.575, 0.0]              # J6 = 0° (home)
-POSE_A = _HOME_J[:5] + [math.radians(-90)]              # J6 = -90°
-POSE_B = _HOME_J[:5] + [math.radians(+90)]              # J6 = +90°
-HOME   = _HOME_J
+ZERO   = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]            # all-zeros between movements
+HOME   = [0.0, 0.0, 0.0, 0.001, 0.575, 0.0]        # neutral starting pose
+HOME_JOINTS = [                                      # safe resting pose for RTH
+    math.radians(-0.03),
+    math.radians(-0.79),
+    math.radians(+1.38),
+    math.radians(+6.80),
+    math.radians(+24.89),
+    math.radians(+19.52),
+]
+POSE_A = [0.0, 0.4, -0.4, 0.0, -0.4, 0.0]          # raised position
 CYCLES = 2
-
 
 _stop_event = threading.Event()
 _track_thread = None
-_log_file = "joint_log.csv"
+_log_file = "up_down_log.csv"
+
 
 def start_tracking(robot, label: str = "", interval: float = 0.2):
     global _track_thread
@@ -42,6 +46,7 @@ def start_tracking(robot, label: str = "", interval: float = 0.2):
     _track_thread = threading.Thread(target=_loop, daemon=True)
     _track_thread.start()
 
+
 def stop_tracking():
     global _track_thread
     _stop_event.set()
@@ -49,8 +54,8 @@ def stop_tracking():
         _track_thread.join()
         _track_thread = None
 
+
 def wait_motion_done(robot, timeout: float = 30.0, poll_interval: float = 0.1) -> bool:
-    """Wait until `robot.get_arm_status().msg.motion_status == 0` or timeout."""
     # Phase 1: wait for motion to start
     time.sleep(0.3)
     for _ in range(30):
@@ -71,60 +76,40 @@ def wait_motion_done(robot, timeout: float = 30.0, poll_interval: float = 0.1) -
         time.sleep(poll_interval)
 
 
-# --- Connect (matches API docs exactly) ---
 robot_cfg = create_agx_arm_config(
     robot="piper", comm="can", channel="PCAN_USBBUS1", interface="pcan",
-    joint_limits={"joint5": [-0.3, 0.6], "joint6": [-1.6, 1.6]},  # J6: ±90°
+    joint_limits={"joint5": [-0.5, 0.6]},
 )
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
 end_effector = robot.init_effector(robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
 
-# --- Set follower (slave) mode so arm responds to motion commands ---
 robot.set_follower_mode()
 time.sleep(0.1)
 
-# --- Enable & configure ---
 while not robot.enable():
     time.sleep(0.01)
 robot.set_speed_percent(30)
 
-# --- Check current J6 and step toward home to avoid wrong-direction 360° spin ---
-time.sleep(0.3)
-current_j6 = math.degrees(robot.get_joint_angles().msg[5])
-home_j6 = math.degrees(HOME[5])
-diff = abs(current_j6 - home_j6)
-print(f"Current J6: {current_j6:.1f}°, Home J6: {home_j6:.1f}°, diff: {diff:.1f}°")
-if diff > 90:
-    # Move to midpoint first so firmware takes the short path to home
-    mid = _HOME_J[:5] + [math.radians((current_j6 + home_j6) / 2)]
-    print(f"Large gap — stepping via midpoint J6={math.degrees(mid[5]):.1f}°")
-    robot.move_j(mid)
-    wait_motion_done(robot)
-
-# --- Move to home first to avoid wrong-direction spin at start ---
-print(f"Moving to home (J6={math.degrees(HOME[5]):.1f}°)...")
+print("Moving to home...")
 print(f"Logging to {_log_file}")
 start_tracking(robot, label="home")
 robot.move_j(HOME)
 wait_motion_done(robot)
 stop_tracking()
 
-print(f"POSE_A J6={math.degrees(POSE_A[5]):.1f}°, POSE_B J6={math.degrees(POSE_B[5]):.1f}°")
-
-# --- Oscillate between two poses ---
 try:
     for i in range(CYCLES):
-        print(f"Cycle {i + 1}/{CYCLES}: -> POSE_A ({math.degrees(POSE_A[5]):.1f}°), open gripper")
-        start_tracking(robot, label=f"c{i+1}_pose_a")
+        print(f"Cycle {i + 1}/{CYCLES}: -> up (POSE_A), open gripper")
+        start_tracking(robot, label=f"c{i+1}_up")
         robot.move_j(POSE_A)
         end_effector.move_gripper(0.07)
         wait_motion_done(robot)
         stop_tracking()
 
-        print(f"Cycle {i + 1}/{CYCLES}: -> POSE_B ({math.degrees(POSE_B[5]):.1f}°), close gripper")
-        start_tracking(robot, label=f"c{i+1}_pose_b")
-        robot.move_j(POSE_B)
+        print(f"Cycle {i + 1}/{CYCLES}: -> zero, close gripper")
+        start_tracking(robot, label=f"c{i+1}_zero")
+        robot.move_j(ZERO)
         end_effector.move_gripper(0)
         wait_motion_done(robot)
         stop_tracking()
@@ -132,10 +117,9 @@ except KeyboardInterrupt:
     stop_tracking()
     print("\nInterrupted — stopping...")
 
-# --- Disable ---
 print("Returning to home...")
 start_tracking(robot, label="return_home")
-robot.move_j(HOME)
+robot.move_j(HOME_JOINTS)
 wait_motion_done(robot)
 stop_tracking()
 

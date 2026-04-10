@@ -61,6 +61,16 @@ def hline(ch_l, ch_m, ch_r):
     return ch_l + ch_m * W + ch_r
 
 
+def fmt(val, width=8, decimals=2):
+    """Format a float, showing raw value even if NaN/inf."""
+    try:
+        if math.isnan(val) or math.isinf(val):
+            return f"{'NaN':>{width}}"
+        return f"{val:+{width}.{decimals}f}"
+    except (TypeError, ValueError):
+        return f"{'---':>{width}}"
+
+
 def draw(stdscr, robot):
     curses.curs_set(0)
     stdscr.nodelay(True)
@@ -78,7 +88,8 @@ def draw(stdscr, robot):
 
         # Joint angles
         if joints_msg is not None:
-            jdeg = [math.degrees(r) for r in joints_msg.msg]
+            jrad = list(joints_msg.msg)
+            jdeg = [math.degrees(r) if not (math.isnan(r) or math.isinf(r)) else r for r in jrad]
             jhz = f"{joints_msg.hz:.0f}" if joints_msg.hz else "—"
         else:
             jdeg = [float("nan")] * 6
@@ -88,7 +99,7 @@ def draw(stdscr, robot):
         if pose_msg is not None:
             p = pose_msg.msg  # [x, y, z, roll, pitch, yaw]
             pos = p[:3]
-            ori = [math.degrees(r) for r in p[3:]]
+            ori = [math.degrees(r) if not (math.isnan(r) or math.isinf(r)) else r for r in p[3:]]
             phz = f"{pose_msg.hz:.0f}" if pose_msg.hz else "—"
         else:
             pos = [float("nan")] * 3
@@ -131,7 +142,7 @@ def draw(stdscr, robot):
         row_line(f"  Joint Angles (deg)        Hz: {jhz:<5}")
         for i in range(3):
             j1, j2 = i, i + 3
-            row_line(f"  J{j1+1}: {jdeg[j1]:+8.2f}    J{j2+1}: {jdeg[j2]:+8.2f}")
+            row_line(f"  J{j1+1}: {fmt(jdeg[j1])}    J{j2+1}: {fmt(jdeg[j2])}")
 
         put(hline("╠", "═", "╣"))
 
@@ -141,8 +152,8 @@ def draw(stdscr, robot):
         row_line(f"  End Effector (flange)     Hz: {phz:<5}")
         for i in range(3):
             row_line(
-                f"  {labels_pos[i]}: {pos[i]:+6.3f} m"
-                f"   {labels_ori[i]+':':<7s} {ori[i]:+7.2f}\u00b0"
+                f"  {labels_pos[i]}: {fmt(pos[i], 6, 3)} m"
+                f"   {labels_ori[i]+':':<7s} {fmt(ori[i], 7, 2)}\u00b0"
             )
 
         put(hline("╠", "═", "╣"))
@@ -159,7 +170,7 @@ def draw(stdscr, robot):
 
 def main():
     robot_cfg = create_agx_arm_config(
-        robot="piper", comm="can", channel="can0", interface="socketcan"
+        robot="piper", comm="can", channel="PCAN_USBBUS1", interface="pcan"
     )
     robot = AgxArmFactory.create_arm(robot_cfg)
     robot.connect()

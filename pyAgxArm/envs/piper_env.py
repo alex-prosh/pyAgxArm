@@ -50,7 +50,12 @@ JOINT_HIGH = np.array([v[1] for v in _PIPER_JOINT_LIMITS.values()], dtype=np.flo
 # Fixed orientation when no_rotation=True
 FIXED_ROLL = math.pi
 FIXED_PITCH = 0.0
-FIXED_YAW = 0.0
+FIXED_YAW = math.pi
+
+# Cartesian workspace limits (metres) — edit here to change the action space
+X_MIN, X_MAX = 0.10, 0.30
+Y_MIN, Y_MAX = -0.20, 0.20
+Z_MIN, Z_MAX = 0.15, 0.225
 
 
 def _wait_motion_done(
@@ -140,7 +145,8 @@ class PiperEnv(gym.Env):
         max_delta: Optional[float] = None,
         step_dt: Optional[float] = 0.05,
         speed_percent: int = 25,
-        channel: str = "can0",
+        channel: str = "PCAN_USBBUS1",
+        interface: str = "pcan",
         env_id: int = -1,
         **kwargs: Any,
     ):
@@ -159,6 +165,7 @@ class PiperEnv(gym.Env):
         self.state_type = state_type
         self._speed_percent = speed_percent
         self._channel = channel
+        self._interface = interface
         self.id = env_id
 
         # --- Action scale (matches ArmEnv / InsertionEnv layout) -----------
@@ -170,9 +177,9 @@ class PiperEnv(gym.Env):
             if full_rotation:
                 # x, y, z, roll, pitch, yaw, gripper
                 self.action_scale = np.array([
-                    [0.08,     0.25],    # x
-                    [-0.25,    0.25],    # y
-                    [0.075,    0.20],    # z
+                    [X_MIN,    X_MAX],   # x
+                    [Y_MIN,    Y_MAX],   # y
+                    [Z_MIN,    Z_MAX],   # z
                     [-np.pi,   np.pi],   # roll
                     [-np.pi,   np.pi],   # pitch
                     [-np.pi,   np.pi],   # yaw
@@ -188,9 +195,9 @@ class PiperEnv(gym.Env):
             else:
                 # x, y, z, yaw, gripper
                 self.action_scale = np.array([
-                    [0.08,     0.25],    # x
-                    [-0.25,    0.25],    # y
-                    [0.075,    0.20],    # z
+                    [X_MIN,    X_MAX],   # x
+                    [Y_MIN,    Y_MAX],   # y
+                    [Z_MIN,    Z_MAX],   # z
                     [-np.pi,   np.pi],   # yaw
                     [grip_min, 0.035],   # gripper
                 ])
@@ -224,7 +231,7 @@ class PiperEnv(gym.Env):
 
         # --- Connect to robot ---------------------------------------------
         cfg = create_agx_arm_config(
-            robot="piper", comm="can", channel=channel, interface="socketcan",
+            robot="piper", comm="can", channel=channel, interface=interface,
         )
         self._robot = AgxArmFactory.create_arm(cfg)
         self._robot.connect()

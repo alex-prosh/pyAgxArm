@@ -4,10 +4,10 @@ Moves the end-effector through all 8 corners of a Cartesian bounding box
 using move_p, very slowly (5% speed). Tests the reachable workspace.
 
 Bounding box:
-    X: 0.00 – 0.30 m
-    Y: -0.30 – +0.30 m
-    Z: 0.075 – 0.20 m
-    Orientation: roll=π, pitch=0, yaw=0 (flange pointing down)
+    X: 0.10 – 0.30 m
+    Y: -0.20 – +0.20 m
+    Z: 0.15 – 0.25 m
+    Orientation: roll=π, pitch=0, yaw=π (flange pointing down)
 
 Usage:
     1. Activate CAN: bash pyAgxArm/scripts/can_activate.sh can0
@@ -25,15 +25,15 @@ parser.add_argument("--linear", "-l", action="store_true",
                     help="Use move_l (straight-line) instead of move_p (point-to-point)")
 args = parser.parse_args()
 
-# Orientation: roll=180°, pitch=0, yaw=0
+# Orientation: roll=180°, pitch=0, yaw=180°
 ROLL = math.pi
 PITCH = 0.0
-YAW = 0.0
+YAW = math.pi
 
 # --- Bounding box limits (edit these) ---
-X_MIN, X_MAX = 0.00, 0.25
-Y_MIN, Y_MAX = -0.25, 0.25
-Z_MIN, Z_MAX = 0.075, 0.20
+X_MIN, X_MAX = 0.10, 0.30
+Y_MIN, Y_MAX = -0.20, 0.20
+Z_MIN, Z_MAX = 0.15, 0.225
 
 # 8 corners generated from limits, ordered to trace all 12 edges:
 # bottom rectangle → up → top rectangle → back down
@@ -66,7 +66,7 @@ def wait_motion_done(robot, timeout: float = 15.0, poll_interval: float = 0.1) -
 
 
 # --- Connect ---
-robot_cfg = create_agx_arm_config(robot="piper", comm="can", channel="can0", interface="socketcan")
+robot_cfg = create_agx_arm_config(robot="piper", comm="can", channel="PCAN_USBBUS1", interface="pcan")
 robot = AgxArmFactory.create_arm(robot_cfg)
 robot.connect()
 
@@ -77,7 +77,7 @@ time.sleep(0.1)
 # --- Enable & configure ---
 while not robot.enable():
     time.sleep(0.01)
-robot.set_speed_percent(25)  # very slow for workspace mapping
+robot.set_speed_percent(10)  # very slow for workspace mapping
 
 move_fn = robot.move_l if args.linear else robot.move_p
 mode_name = "move_l (linear)" if args.linear else "move_p (point-to-point)"
@@ -112,6 +112,12 @@ HOME_JOINTS = [
     math.radians(+24.89),  # J5
     math.radians(+19.52),  # J6
 ]
+print("Lifting to safe Z before returning home...")
+robot.set_speed_percent(25)
+safe_lift = [CORNERS[0][0], CORNERS[0][1], Z_MAX] + ORI
+move_fn(safe_lift)
+wait_motion_done(robot)
+
 print("Returning to home...")
 robot.set_speed_percent(30)
 robot.move_j(HOME_JOINTS)

@@ -152,8 +152,10 @@ class CanCommLinux(CanCommBase):
                 )
 
             self.recv_bus = can.ThreadSafeBus(**common_kwargs)
-            self.send_bus = can.ThreadSafeBus(**common_kwargs)
-            # self.send_bus = self.recv_bus
+            if self._interface == "socketcan":
+                self.send_bus = can.ThreadSafeBus(**common_kwargs)
+            else:
+                self.send_bus = self.recv_bus
             self._is_connected = True
             self._is_stopped = False
             # return self.CAN_STATUS.INIT_CAN_BUS_OPENED_SUCCESS
@@ -168,8 +170,9 @@ class CanCommLinux(CanCommBase):
         if self.recv_bus is not None and self.send_bus is not None:
             try:
                 self.recv_bus.shutdown()  # 关闭 CAN 总线
+                if self.send_bus is not self.recv_bus:
+                    self.send_bus.shutdown()
                 self.recv_bus = None
-                self.send_bus.shutdown()
                 self.send_bus = None
                 self._is_connected = False
                 self._is_stopped = True

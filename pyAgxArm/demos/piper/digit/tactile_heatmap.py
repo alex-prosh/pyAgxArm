@@ -94,20 +94,27 @@ def main(camera_index: int = 0) -> None:
         cap = digit._Digit__dev
         print(f"Connected to DIGIT {serial}")
     except Exception:
-        print(f"Using camera index {camera_index} (macOS fallback)")
-        cap = cv2.VideoCapture(camera_index)
+        # pyudev (Linux-only) unavailable on macOS — bypass DigitHandler discovery
+        # and use Digit.connect() directly so it sets resolution + format correctly.
+        from digit_interface import Digit
+        print(f"Using camera index {camera_index} (macOS)")
+        digit = object.__new__(Digit)
+        digit.serial = f"cam{camera_index}"
+        digit.name = None
+        digit._Digit__dev = None
+        digit.dev_name = camera_index
+        digit.manufacturer = ""
+        digit.model = ""
+        digit.revision = 0
+        digit.resolution = {}
+        digit.fps = 0
+        digit.intensity = 0
+        digit.connect()
+        cap = digit._Digit__dev
         if not cap.isOpened():
             print(f"No camera found at index {camera_index}. Check USB connection.")
             sys.exit(1)
-        # Force MJPEG so OpenCV decodes to clean BGR instead of raw YUYV.
-        # YUYV has a different byte stride than BGR and causes a "scrolling"
-        # artifact when misinterpreted.
-        cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        print(f"Resolution: {w}x{h}")
+        print(f"Connected ({int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))})")
 
     fps_mgr = FPSManager(start_realtime_fps=True)
     fps_mgr.add_variable("digit")

@@ -94,27 +94,19 @@ def main(camera_index: int = 0) -> None:
         cap = digit._Digit__dev
         print(f"Connected to DIGIT {serial}")
     except Exception:
-        # pyudev (Linux-only) unavailable on macOS — bypass DigitHandler discovery
-        # and use Digit.connect() directly so it sets resolution + format correctly.
-        from digit_interface import Digit
-        print(f"Using camera index {camera_index} (macOS)")
-        digit = object.__new__(Digit)
-        digit.serial = f"cam{camera_index}"
-        digit.name = None
-        digit._Digit__dev = None
-        digit.dev_name = camera_index
-        digit.manufacturer = ""
-        digit.model = ""
-        digit.revision = 0
-        digit.resolution = {}
-        digit.fps = 0
-        digit.intensity = 0
-        digit.connect()
-        cap = digit._Digit__dev
+        print(f"Opening camera index {camera_index}")
+        cap = cv2.VideoCapture(camera_index)
         if not cap.isOpened():
             print(f"No camera found at index {camera_index}. Check USB connection.")
             sys.exit(1)
-        print(f"Connected ({int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))})")
+        # Read a probe frame to get the native resolution before locking anything
+        import time; time.sleep(0.5)
+        ok, probe = cap.read()
+        if ok and probe is not None:
+            h, w = probe.shape[:2]
+            print(f"Native frame: {w}x{h}  channels={probe.ndim}  dtype={probe.dtype}")
+        else:
+            print("Warning: probe frame failed, continuing anyway")
 
     fps_mgr = FPSManager(start_realtime_fps=True)
     fps_mgr.add_variable("digit")

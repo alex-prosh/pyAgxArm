@@ -99,13 +99,15 @@ def main(camera_index: int = 0) -> None:
         if not cap.isOpened():
             print(f"No camera found at index {camera_index}. Check USB connection.")
             sys.exit(1)
-        # Lock to QVGA — matches digit-interface SDK defaults and prevents
-        # macOS camera auto-resolution switching after a few frames.
+        # Force MJPEG so OpenCV decodes to clean BGR instead of raw YUYV.
+        # YUYV has a different byte stride than BGR and causes a "scrolling"
+        # artifact when misinterpreted.
+        cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        print(f"Resolution locked to {w}x{h}")
+        print(f"Resolution: {w}x{h}")
 
     fps_mgr = FPSManager(start_realtime_fps=True)
     fps_mgr.add_variable("digit")

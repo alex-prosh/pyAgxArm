@@ -80,17 +80,25 @@ def _overlay(img: np.ndarray, fps: float, blur: bool, capturing: bool) -> None:
                 font, 0.5, (200, 200, 200), 1)
 
 
-def main() -> None:
-    from digit_interface import Digit, DigitHandler
-
-    digits = DigitHandler.find_digits()
-    if not digits:
-        print("No DIGIT sensor found. Check USB connection.")
-        sys.exit(1)
-
-    sensor = Digit(digits[0].serial)
-    sensor.connect()
-    print(f"Connected to DIGIT {digits[0].serial}")
+def main(camera_index: int = 0) -> None:
+    # digit-interface device discovery relies on pyudev (Linux only).
+    # On macOS the DIGIT appears as a plain USB camera — open by index directly.
+    try:
+        from digit_interface import Digit, DigitHandler
+        digits = DigitHandler.list_digits()
+        if not digits:
+            raise RuntimeError("no devices")
+        serial = digits[0]["serial"]
+        digit = Digit(serial)
+        digit.connect()
+        cap = digit._Digit__dev
+        print(f"Connected to DIGIT {serial}")
+    except Exception:
+        print(f"Using camera index {camera_index} (macOS fallback)")
+        cap = cv2.VideoCapture(camera_index)
+        if not cap.isOpened():
+            print(f"No camera found at index {camera_index}. Check USB connection.")
+            sys.exit(1)
 
     fps_mgr = FPSManager(start_realtime_fps=True)
     fps_mgr.add_variable("digit")
@@ -102,8 +110,8 @@ def main() -> None:
 
     try:
         while True:
-            frame = sensor.get_frame()
-            if frame is None:
+            ok, frame = cap.read()
+            if not ok or frame is None:
                 continue
 
             if capturing:
@@ -135,7 +143,7 @@ def main() -> None:
 
     finally:
         fps_mgr.stop()
-        sensor.disconnect()
+        cap.release()
         cv2.destroyAllWindows()
 
 

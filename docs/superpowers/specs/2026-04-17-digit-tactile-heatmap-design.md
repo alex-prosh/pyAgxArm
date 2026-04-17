@@ -55,7 +55,7 @@ Keyboard controls (cv2.waitKey)
 - Convert current frame to grayscale float32
 - `diff = abs(current_gray - baseline_gray)`
 - If blur enabled: `cv2.GaussianBlur(diff, (15, 15), 0)`
-- Normalize to 0–255 uint8, apply `cv2.COLORMAP_JET`
+- Normalize to 0–255 uint8, apply `cv2.COLORMAP_HOT` (black=no contact, bright=contact)
 
 **Display:**
 - `np.hstack([raw_bgr, heatmap_bgr])` → single `cv2.imshow` window
@@ -63,7 +63,8 @@ Keyboard controls (cv2.waitKey)
 - FPS via rolling average using `pyAgxArm/utiles/fps.py`
 
 **Entry point:**
-- Script connects to first available DIGIT sensor by serial number discovery
+- Script calls `DigitHandler.list()` to enumerate connected sensors, picks the first one
+- Exits with a clear error message if no sensor is found
 - Graceful cleanup on `'q'` or window close
 
 ## Dependencies
